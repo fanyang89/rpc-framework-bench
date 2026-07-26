@@ -1,0 +1,3 @@
+{"round":1,"label":"fixture-server","client_framework_version":"fixture-client","errors":0,"ops_per_second":100,"p50_us":10,"p95_us":20,"p99_us":30,"config":{"concurrency":4,"connections":1}}
+{"round":2,"label":"fixture-server","client_framework_version":"fixture-client","errors":0,"ops_per_second":110,"p50_us":9,"p95_us":19,"p99_us":29,"server_cpu":{"cpu_seconds":11.4,"wall_seconds":12,"utilization_percent":95},"config":{"concurrency":4,"connections":1}}
+{"round":3,"label":"fixture-server","client_framework_version":"fixture-client","errors":0,"ops_per_second":120,"p50_us":8,"p95_us":18,"p99_us":28,"server_cpu":{"cpu_seconds":11.88,"wall_seconds":12,"utilization_percent":99},"config":{"concurrency":4,"connections":1}}

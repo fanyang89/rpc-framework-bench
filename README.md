@@ -11,7 +11,8 @@ application logging.
 
 ## Requirements
 
-- Linux with `taskset`
+- Linux with `/proc`, `taskset`, `getconf`, and nanosecond GNU `date`
+- `jq`
 - Go 1.26 or later
 - Rust and Cargo with the toolchain accepted by `tonic-server/Cargo.lock`
 - `protoc`, `grpc_cpp_plugin`, and `pkg-config`
@@ -39,13 +40,13 @@ Run each server manually with:
 
 ```sh
 GRPC_LITE_SERVER=/path/to/grpc-lite-interop-server
-"$GRPC_LITE_SERVER" --port=51051 --use_tls=false
+"$GRPC_LITE_SERVER" --port=25051 --use_tls=false
 
-GOMAXPROCS=1 ./bin/go-server -addr=127.0.0.1:51052
+GOMAXPROCS=1 ./bin/go-server -addr=127.0.0.1:25052
 
-SERVER_THREADS=1 SERVER_ADDR=127.0.0.1:51053 ./bin/tonic-server
+SERVER_THREADS=1 SERVER_ADDR=127.0.0.1:25053 ./bin/tonic-server
 
-./bin/cpp-server 127.0.0.1:51054
+./bin/cpp-server 127.0.0.1:25054
 ```
 
 `GOMAXPROCS=1` limits the Go scheduler. `SERVER_THREADS=1` sets the Tonic Tokio
@@ -57,7 +58,7 @@ Start one server, then run the selected client:
 
 ```sh
 CLIENT_THREADS=4 ./bin/tonic-client \
-  -addr=127.0.0.1:51051 \
+  -addr=127.0.0.1:25051 \
   -warmup=2s \
   -duration=10s \
   -concurrency=4 \
@@ -91,20 +92,36 @@ CLIENT_IMPL=tonic \
 ```
 
 `run.sh` uses strict Bash error handling and always cleans up its current server.
-For every case it starts one server, waits for its port, runs the client, records
-one JSON object, and stops the server. Framework order rotates between rounds to
+For every case it starts one server, waits for its port, samples that process,
+starts the configured client processes in the background, waits for all of them,
+samples and immediately stops the server, validates the client JSON with `jq`,
+and records one compact JSON object. Framework order rotates between rounds to
 reduce time-order bias.
+
+Each result has a `server_cpu` object containing `cpu_seconds`, `wall_seconds`,
+and `utilization_percent`. This is the server process's average CPU usage from
+immediately before client process startup until all client processes exit. The
+interval includes client process startup, connection setup, warmup, measurement,
+draining, and client result serialization. Linux process CPU includes all server
+threads but excludes network softirq CPU. It can exceed 100% without single-CPU
+affinity.
+With the server fixed to one logical CPU, about 95-100% means that logical CPU is
+saturated. Kernel or network processing can instead limit a platform while the
+server process remains below 100%. A capacity conclusion still requires checking
+client headroom and host-level CPU and network telemetry.
 
 Defaults:
 
 | Setting | Default |
 | --- | --- |
-| grpc-lite port | `51051` |
-| grpc-go port | `51052` |
-| Tonic port | `51053` |
-| gRPC C++ port | `51054` |
+| grpc-lite port | `25051` |
+| grpc-go port | `25052` |
+| Tonic port | `25053` |
+| gRPC C++ port | `25054` |
 | `SERVER_CPU` | `15` |
 | `CLIENT_CPUS` | `8-14` |
+| `CLIENT_PROCESSES` | `1` |
+| `CLIENT_CPU_SETS` | empty |
 | `ROUNDS` | `5` |
 | `WARMUP` | `2s` |
 | `DURATION` | `10s` |
@@ -118,6 +135,37 @@ Defaults:
 
 The four port defaults can be overridden with `GRPC_LITE_PORT`, `GRPC_GO_PORT`,
 `TONIC_PORT`, and `GRPC_CPP_PORT`.
+Ports `25051-25054` are below Linux's default ephemeral range
+`32768-60999`. This avoids rapid-restart bind conflicts seen with the old gRPC
+C++ server when benchmark ports were inside that range.
+
+## Capacity Run
+
+Use multiple independently pinned client processes when one load-generator
+process cannot provide enough offered load. This example starts two gRPC-Go
+clients, each with concurrency 256 and 8 connections:
+
+```sh
+GRPC_LITE_SERVER=/path/to/grpc-lite-interop-server \
+GRPC_LITE_VERSION=grpc-lite/VERSION \
+CLIENT_IMPL=go \
+CLIENT_PROCESSES=2 \
+CLIENT_CPU_SETS="1-3,6-8 9-10,12-14" \
+CONCURRENCY=256 \
+CONNECTIONS=8 \
+./run.sh
+```
+
+Each process has its own `taskset` CPU set. The aggregate has total concurrency
+512 and 16 total connections. Compare aggregate throughput and server CPU only;
+do not compare aggregate latency or calculate cross-process percentiles.
+Percentiles cannot be merged from independent histograms, so aggregate latency
+fields are `null`. Per-process latency remains available in `process_results`
+for diagnostics only.
+
+With `CLIENT_PROCESSES=1`, `CLIENT_CPUS` is used and the original client JSON
+schema, including complete latency fields, is retained. With more processes,
+`CLIENT_CPU_SETS` must contain exactly one whitespace-separated set per process.
 
 ## Saturation Sweep
 
@@ -143,18 +191,28 @@ Sweep defaults:
 | `ROUNDS` | `3` |
 | `WARMUP` | `2s` |
 | `DURATION` | `10s` |
+| `CLIENT_PROCESSES` | `1` |
+| `CLIENT_CPU_SETS` | empty |
 
 All lists may be overridden, for example
 `CLIENT_IMPLS="tonic go" CONCURRENCY_LEVELS="8 32 128"`. The script passes the
 grpc-lite executable and version, ports, CPU affinity, payload sizes,
-connections, and Tonic client thread count through to `run.sh`. It exits on the
-first failed run and writes one file per client and concurrency level under
-`results/sweeps/<RUN_ID>/`; without `RUN_ID`, it uses a UTC timestamp.
+connections, client process count and CPU sets, and Tonic client thread count
+through to `run.sh`. It exits on the first failed run and writes one file per
+client and concurrency level under `results/sweeps/<RUN_ID>/`; filenames include
+`p<N>-conn<connections-per-process>` to prevent process/connection configurations
+from overwriting each other. Without `RUN_ID`, it uses a UTC timestamp.
 
 `scripts/summarize.go` accepts one or more JSONL files, discovers every server
-label present, and groups by client version, server, and concurrency. It prints
-the across-round median throughput and p50/p95/p99 latency plus minimum and
-maximum round throughput. It does not infer saturation or rank servers.
+label present, and groups by client version, server, client process count, total
+concurrency, and total connections. It prints the across-round median throughput,
+p50/p95/p99 latency, server CPU utilization, and minimum and maximum round
+throughput. Legacy JSON falls back to one process and its `config.concurrency`
+and `config.connections` values. Nullable aggregate latency prints `n/a`. The
+telemetry count distinguishes
+measured rounds from legacy JSON without `server_cpu`; a group with no telemetry
+prints `n/a` rather than zero. The summarizer still rejects any result with RPC
+errors and does not infer saturation or rank servers.
 
 `results/sweeps/` is ignored because sweeps are provisional until host and CPU
 conditions are reviewed. To publish an accepted sweep, explicitly move it to a
@@ -178,10 +236,11 @@ counted when it starts before the measurement deadline; the client drains that
 RPC even if it completes after the deadline. Workers keep local latency slices,
 which are merged and sorted after measurement.
 
-Tonic creates exactly `CONNECTIONS` real channels. Generated clients cloned by
-workers round-robin across those channels, so `CONNECTIONS=1` multiplexes every
-worker over one HTTP/2 connection. `CLIENT_THREADS` controls its Tokio runtime.
-Neither client enables TLS, compression, retries, or application logging.
+Each client process creates exactly `CONNECTIONS` real channels. Generated Tonic
+clients cloned by workers round-robin across those channels, so `CONNECTIONS=1`
+multiplexes every worker in that process over one HTTP/2 connection.
+`CLIENT_THREADS` controls each Tonic process's Tokio runtime. Neither client
+enables TLS, compression, retries, or application logging.
 
 Throughput is completed RPCs divided by the configured duration. Percentiles use
 nearest-rank selection. Reported comparisons use round medians.
@@ -211,8 +270,9 @@ reinforce why neither C=4 table is a server-capacity ranking.
 A capacity comparison must progressively increase concurrency. A server may be
 compared only after its assigned CPU is saturated, the client still has CPU and
 load-generation headroom, and throughput has entered a plateau as offered load
-increases. CPU saturation and client headroom must be confirmed from host
-telemetry alongside the JSONL output; latency growth alone is insufficient.
+increases. The per-case server process telemetry records CPU saturation, but
+client headroom must still be confirmed from host telemetry alongside the JSONL
+output; latency growth alone is insufficient.
 
 Run the complete sweep with both clients. A server-capacity conclusion should
 converge under enough offered load for both clients. If one client plateaus
@@ -222,11 +282,11 @@ choosing a winner.
 
 ## Fairness and Scope
 
-`run.sh` pins every server to one logical CPU and the selected client to a
-separate CPU set. The gRPC-Go server uses `GOMAXPROCS=1`; the Tonic server uses
-one Tokio worker. Only one server runs during each measured case. The harness
-does not change CPU governor, NUMA policy, interrupt affinity, or background
-services, so those controls remain the operator's responsibility.
+`run.sh` pins every server to one logical CPU and each selected client process to
+its configured CPU set. The gRPC-Go server uses `GOMAXPROCS=1`; the Tonic server
+uses one Tokio worker. Only one server runs during each measured case. The
+harness does not change CPU governor, NUMA policy, interrupt affinity, or
+background services, so those controls remain the operator's responsibility.
 
 The retained latency matrices apply only to a single-core server, one
 connection, four concurrent closed-loop workers, and 1 KiB unary requests and
@@ -253,6 +313,27 @@ The grpc-lite version is supplied at run time through `GRPC_LITE_VERSION`; the
 harness does not assume a source revision.
 
 ## Results
+
+### Formal capacity
+
+These high-load, two-process medians are the current single-core server-capacity
+result. Each client process used concurrency 256 and 8 connections, for total
+concurrency 512 and 16 connections. Only aggregate throughput and server process
+CPU are compared; aggregate latency is intentionally `null`. Full results and
+methodology are in
+[`results/2026-07-27-single-core-unary-capacity/`](results/2026-07-27-single-core-unary-capacity/).
+
+| Server | Go client RPC/s | Go client server CPU (%) | Tonic client RPC/s | Tonic client server CPU (%) |
+| --- | ---: | ---: | ---: | ---: |
+| grpc-lite | 480009.6 | 89.662 | 431940.8 | 86.671 |
+| Tonic | 118089.8 | 79.117 | 113224.8 | 82.120 |
+| grpc-go | 90174.3 | 88.086 | 89785.0 | 89.343 |
+| gRPC C++ | 72676.1 | 86.050 | 74611.4 | 88.255 |
+
+grpc-lite has a clear capacity lead under both load generators. The Tonic load
+generator gives grpc-lite a lower absolute bound than the Go load generator, but
+both produce the same server ordering. The gRPC C++ result uses the old 1.48.4
+system package and does not represent a current release.
 
 ### Low-concurrency end-to-end matrix: Tonic client
 
@@ -282,13 +363,10 @@ environmental caveats are in
 | grpc-go | 91445.9 | 41.949 | 81.153 | 144.592 |
 | gRPC C++ | 88921.4 | 35.747 | 97.824 | 156.205 |
 
-The relative order of grpc-lite and Tonic changes with the client. This is
-evidence of material client-server stack affinity, not a server ranking. The
-common load generator remains part of every measured pair and constrains
-observed throughput, so neither table is a server-only maximum.
-
-No formal saturation sweep is currently recorded. Capacity conclusions require
-a quiet-host rerun following the saturation criteria above.
+The relative order of grpc-lite and Tonic changes with the client. This remains
+evidence of material client-server stack affinity, not a server ranking. These
+historical low-concurrency matrices are latency-oriented pair results and do not
+supersede the formal capacity result above.
 
 ## References
 
