@@ -321,19 +321,30 @@ result. Each client process used concurrency 256 and 8 connections, for total
 concurrency 512 and 16 connections. Only aggregate throughput and server process
 CPU are compared; aggregate latency is intentionally `null`. Full results and
 methodology are in
-[`results/2026-07-27-single-core-unary-capacity/`](results/2026-07-27-single-core-unary-capacity/).
+[`results/2026-07-27-single-core-unary-capacity-c2d05b8/`](results/2026-07-27-single-core-unary-capacity-c2d05b8/).
 
 | Server | Go client RPC/s | Go client server CPU (%) | Tonic client RPC/s | Tonic client server CPU (%) |
 | --- | ---: | ---: | ---: | ---: |
-| grpc-lite | 480009.6 | 89.662 | 431940.8 | 86.671 |
-| Tonic | 118089.8 | 79.117 | 113224.8 | 82.120 |
-| grpc-go | 90174.3 | 88.086 | 89785.0 | 89.343 |
-| gRPC C++ | 72676.1 | 86.050 | 74611.4 | 88.255 |
+| grpc-lite | 501737.0 | 89.496 | 432794.2 | 86.593 |
+| Tonic | 119371.4 | 78.530 | 114829.9 | 82.036 |
+| grpc-go | 90548.6 | 87.579 | 89474.0 | 89.266 |
+| gRPC C++ | 75685.8 | 85.619 | 73872.9 | 88.183 |
+
+Previous baseline:
+[`results/2026-07-27-single-core-unary-capacity/`](results/2026-07-27-single-core-unary-capacity/).
+
+| Load generator | Previous revision | New revision | Previous grpc-lite RPC/s | New grpc-lite RPC/s | Delta (%) |
+| --- | --- | --- | ---: | ---: | ---: |
+| Go | `e24e5a2` | `c2d05b8` | 480009.6 | 501737.0 | +4.526451 |
+| Tonic | `e24e5a2` | `c2d05b8` | 431940.8 | 432794.2 | +0.197573 |
 
 grpc-lite has a clear capacity lead under both load generators. The Tonic load
 generator gives grpc-lite a lower absolute bound than the Go load generator, but
-both produce the same server ordering. The gRPC C++ result uses the old 1.48.4
-system package and does not represent a current release.
+both produce the same server ordering. Under the Go load generator, grpc-lite's
+observed increase is larger than the changes in the Tonic and grpc-go controls.
+The Tonic load generator remains on an approximately 433k RPC/s platform and
+cannot establish that there was no server improvement. The gRPC C++ result uses
+the old 1.48.4 system package and does not represent a current release.
 
 ### Low-concurrency end-to-end matrix: Tonic client
 
