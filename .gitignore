@@ -1,6 +1,7 @@
 /bin/
 /tonic-server/target/
 /cpp-server/generated/
+/results/sweeps/
 
 .DS_Store
 *.swp

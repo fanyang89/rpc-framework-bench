@@ -4,6 +4,7 @@ use grpc_testing::{
     Payload, SimpleRequest, SimpleResponse,
     test_service_server::{TestService, TestServiceServer},
 };
+use prost::bytes::Bytes;
 use tonic::{Request, Response, Status, transport::Server};
 
 pub mod grpc_testing {
@@ -28,7 +29,7 @@ impl TestService for BenchmarkService {
         Ok(Response::new(SimpleResponse {
             payload: Some(Payload {
                 r#type: 0,
-                body: vec![0; response_size as usize],
+                body: Bytes::from(vec![0; response_size as usize]),
             }),
         }))
     }

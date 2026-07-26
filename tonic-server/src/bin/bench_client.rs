@@ -3,6 +3,7 @@ use std::{env, error::Error, process, time::Duration};
 use grpc_testing::{
     Payload, PayloadType, SimpleRequest, SimpleResponse, test_service_client::TestServiceClient,
 };
+use prost::bytes::Bytes;
 use serde::Serialize;
 use tokio::{sync::oneshot, task::JoinHandle, time::Instant};
 use tonic::transport::{Channel, Endpoint};
@@ -291,7 +292,7 @@ async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
         response_size: config.resp_size as i32,
         payload: Some(Payload {
             r#type: PayloadType::Compressable as i32,
-            body: vec![0; config.req_size],
+            body: Bytes::from(vec![0; config.req_size]),
         }),
     };
     let (ready_tx, mut ready_rx) = tokio::sync::mpsc::channel(config.concurrency);

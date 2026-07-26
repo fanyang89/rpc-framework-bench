@@ -1,4 +1,7 @@
-# Single-core unary benchmark with Go client, 2026-07-27
+# Low-concurrency end-to-end matrix with Go client, 2026-07-27
+
+This is a latency-oriented client-server pair matrix, not a server throughput
+ranking or a measurement of server capacity.
 
 ## Environment
 
@@ -27,7 +30,7 @@ run; the three without client traffic were idle at 0.0% observed CPU.
 - Five rounds per framework
 - One server logical CPU; client on a separate CPU set
 
-## Median Results
+## Round Medians
 
 | Server | RPC/s | p50 (us) | p95 (us) | p99 (us) |
 | --- | ---: | ---: | ---: | ---: |
@@ -44,7 +47,10 @@ medians and percentage differences computed as
 ## Interpretation
 
 These numbers apply only to this single-core server, single connection, four
-worker, 1 KiB unary configuration. The shared Go client limits grpc-lite to
-about 124k RPC/s, versus about 180k RPC/s from its native harness, reducing the
-visible differences between servers. The gRPC C++ 1.48.4 system package is old
-and should not be treated as representative of current gRPC C++ releases.
+worker, 1 KiB unary configuration. At four closed-loop workers, throughput is
+primarily a function of pair latency and cannot rank server capacity. The
+differences from the Tonic-client matrix are evidence of client-server stack
+affinity. The shared Go client limits grpc-lite to about 124k RPC/s, versus about
+180k RPC/s from its native harness, reducing the visible differences between
+pairs. The gRPC C++ 1.48.4 system package is old and should not be treated as
+representative of current gRPC C++ releases.

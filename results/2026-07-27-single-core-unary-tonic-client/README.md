@@ -1,4 +1,7 @@
-# Single-core unary benchmark with Tonic client, 2026-07-27
+# Low-concurrency end-to-end matrix with Tonic client, 2026-07-27
+
+This is a latency-oriented client-server pair matrix, not a server throughput
+ranking or a measurement of server capacity.
 
 ## Environment
 
@@ -26,7 +29,7 @@ left rotation in each subsequent round. Round five repeated round one's order.
 - Five rounds per framework
 - One server logical CPU; client on a separate CPU set
 
-## Median Results
+## Round Medians
 
 | Server | RPC/s | p50 (us) | p95 (us) | p99 (us) |
 | --- | ---: | ---: | ---: | ---: |
@@ -42,10 +45,14 @@ left rotation in each subsequent round. Round five repeated round one's order.
 ## Interpretation
 
 These numbers apply only to this single-core server, single connection, four
-worker, 1 KiB unary configuration. Tonic leads grpc-lite throughput by about
-1.9% with the Tonic client, a small difference that should not be generalized.
-The common client remains part of the measured stack and still constrains
-observed throughput, so these are not isolated server maxima. Request-template
-cloning is also included in the Tonic client path. The gRPC C++ 1.48.4 system
-package is old and should not be treated as representative of current gRPC C++
-releases.
+worker, 1 KiB unary configuration. At four closed-loop workers, throughput is
+primarily a function of pair latency and cannot rank server capacity. The
+differences from the Go-client matrix are evidence of client-server stack
+affinity.
+
+The recorded client copied its request payload when cloning each RPC template;
+the current client generates that field as reference-counted `Bytes`. Follow-up
+calibration indicated a client-side ceiling, but it was interrupted by unrelated
+host work and is not recorded as a formal saturation result or ranking. The gRPC
+C++ 1.48.4 system package is old and should not be treated as representative of
+current gRPC C++ releases.
