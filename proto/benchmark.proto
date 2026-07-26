@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package grpc.testing;
+
+enum PayloadType {
+  COMPRESSABLE = 0;
+}
+
+message Payload {
+  PayloadType type = 1;
+  bytes body = 2;
+}
+
+message SimpleRequest {
+  PayloadType response_type = 1;
+  int32 response_size = 2;
+  Payload payload = 3;
+}
+
+message SimpleResponse {
+  Payload payload = 1;
+}
+
+service TestService {
+  rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
+}

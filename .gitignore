@@ -1,0 +1,10 @@
+/bin/
+/tonic-server/target/
+/cpp-server/generated/
+
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+.vscode/

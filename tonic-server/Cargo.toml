@@ -1,0 +1,25 @@
+[package]
+name = "tonic-benchmark-server"
+version = "0.1.0"
+edition = "2024"
+publish = false
+autobins = false
+
+[[bin]]
+name = "tonic-server"
+path = "src/main.rs"
+
+[[bin]]
+name = "tonic-client"
+path = "src/bin/bench_client.rs"
+
+[dependencies]
+prost = "0.14"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tonic = { version = "=0.14.6", default-features = false, features = ["codegen", "router", "transport"] }
+tonic-prost = "=0.14.6"
+
+[build-dependencies]
+tonic-prost-build = "=0.14.6"
