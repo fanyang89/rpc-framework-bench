@@ -1,0 +1,21 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/tonic-server"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/grpc-native-build/grpc-native",
+    "client",
+    "127.0.0.1:54085",
+    "32",
+    "64",
+    "65536",
+    "1000",
+    "5000"
+  ]
+}

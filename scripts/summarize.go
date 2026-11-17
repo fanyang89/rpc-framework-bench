@@ -12,6 +12,7 @@ import (
 type result struct {
 	Round                  int        `json:"round"`
 	Label                  string     `json:"label"`
+	ServerVersion          string     `json:"server_version"`
 	ClientFrameworkVersion string     `json:"client_framework_version"`
 	Errors                 uint64     `json:"errors"`
 	OpsPerSecond           float64    `json:"ops_per_second"`
@@ -20,12 +21,25 @@ type result struct {
 	P99US                  *float64   `json:"p99_us"`
 	ServerCPU              *serverCPU `json:"server_cpu"`
 	Config                 struct {
+		scenario
 		Concurrency      int `json:"concurrency"`
 		Connections      int `json:"connections"`
 		ClientProcesses  int `json:"client_processes"`
 		TotalConcurrency int `json:"total_concurrency"`
 		TotalConnections int `json:"total_connections"`
 	} `json:"config"`
+}
+
+type scenario struct {
+	Mode          string `json:"mode"`
+	TLS           bool   `json:"tls"`
+	Messages      int    `json:"messages"`
+	ServerThreads int    `json:"server_threads"`
+	CPPAPI        string `json:"cpp_api"`
+	RequestSize   int    `json:"req_size"`
+	ResponseSize  int    `json:"resp_size"`
+	Warmup        string `json:"warmup"`
+	Duration      string `json:"duration"`
 }
 
 type serverCPU struct {
@@ -35,6 +49,8 @@ type serverCPU struct {
 }
 
 type groupKey struct {
+	scenario    scenario
+	version     string
 	client      string
 	server      string
 	processes   int
@@ -136,6 +152,8 @@ func readResults(path string, groups map[groupKey]*metrics) error {
 		}
 
 		key := groupKey{
+			scenario:    record.Config.scenario,
+			version:     record.ServerVersion,
 			client:      record.ClientFrameworkVersion,
 			server:      record.Label,
 			processes:   processes,
@@ -183,6 +201,12 @@ func run() error {
 		keys = append(keys, key)
 	}
 	sort.Slice(keys, func(i, j int) bool {
+		if keys[i].scenario != keys[j].scenario {
+			return fmt.Sprint(keys[i].scenario) < fmt.Sprint(keys[j].scenario)
+		}
+		if keys[i].version != keys[j].version {
+			return keys[i].version < keys[j].version
+		}
 		if keys[i].client != keys[j].client {
 			return keys[i].client < keys[j].client
 		}
@@ -198,12 +222,13 @@ func run() error {
 		return keys[i].server < keys[j].server
 	})
 
-	fmt.Println("client\tserver\tclient_processes\ttotal_concurrency\ttotal_connections\trounds\tmedian_ops_per_second\tmedian_p50_us\tmedian_p95_us\tmedian_p99_us\tmin_ops_per_second\tmax_ops_per_second\tmedian_server_cpu_utilization_percent\tserver_cpu_telemetry_rounds")
+	fmt.Println("client\tserver\tclient_processes\ttotal_concurrency\ttotal_connections\trounds\tmedian_ops_per_second\tmedian_p50_us\tmedian_p95_us\tmedian_p99_us\tmin_ops_per_second\tmax_ops_per_second\tmedian_server_cpu_utilization_percent\tserver_cpu_telemetry_rounds\tserver_version\tscenario")
 	for _, key := range keys {
 		group := groups[key]
 		sort.Float64s(group.ops)
 		medianOps, _ := median(group.ops)
-		fmt.Printf("%s\t%s\t%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%.3f\t%.3f\t%s\t%d\n",
+		scenarioJSON, _ := json.Marshal(key.scenario)
+		fmt.Printf("%s\t%s\t%d\t%d\t%d\t%d\t%.3f\t%s\t%s\t%s\t%.3f\t%.3f\t%s\t%d\t%s\t%s\n",
 			key.client,
 			key.server,
 			key.processes,
@@ -218,6 +243,7 @@ func run() error {
 			group.ops[len(group.ops)-1],
 			formatMedian(group.cpu),
 			len(group.cpu),
+			key.version, scenarioJSON,
 		)
 	}
 	return nil

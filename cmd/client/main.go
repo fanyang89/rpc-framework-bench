@@ -6,14 +6,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"math"
 	"os"
-	"sort"
+	"slices"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	pb "google.golang.org/grpc/interop/grpc_testing"
 )
@@ -28,6 +30,9 @@ type config struct {
 	Connections  int           `json:"connections"`
 	RequestSize  int           `json:"req_size"`
 	ResponseSize int           `json:"resp_size"`
+	Mode         string        `json:"mode"`
+	Messages     int           `json:"messages"`
+	TLSCA        string        `json:"tls_ca"`
 }
 
 type result struct {
@@ -73,6 +78,89 @@ func percentile(sorted []int64, fraction float64) float64 {
 	return float64(sorted[index]) / 1000
 }
 
+// One operation is one complete RPC, including all messages and final status.
+func operation(client pb.TestServiceClient, cfg config, request *pb.SimpleRequest) func() error {
+	parameters := make([]*pb.ResponseParameters, cfg.Messages)
+	for i := range parameters {
+		parameters[i] = &pb.ResponseParameters{Size: int32(cfg.ResponseSize)}
+	}
+	outputRequest := &pb.StreamingOutputCallRequest{Payload: request.Payload, ResponseParameters: parameters}
+	pingRequest := &pb.StreamingOutputCallRequest{Payload: request.Payload, ResponseParameters: parameters[:1]}
+	return func() error {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		switch cfg.Mode {
+		case "unary":
+			response, err := client.UnaryCall(ctx, request)
+			if err != nil {
+				return err
+			}
+			return validateResponse(response, cfg.ResponseSize)
+		case "client-stream":
+			stream, err := client.StreamingInputCall(ctx)
+			if err != nil {
+				return err
+			}
+			for range cfg.Messages {
+				if err := stream.Send(&pb.StreamingInputCallRequest{Payload: request.Payload}); err != nil {
+					return err
+				}
+			}
+			response, err := stream.CloseAndRecv()
+			if err != nil {
+				return err
+			}
+			if int(response.AggregatedPayloadSize) != cfg.Messages*cfg.RequestSize {
+				return errors.New("wrong aggregate payload size")
+			}
+			return nil
+		case "server-stream":
+			stream, err := client.StreamingOutputCall(ctx, outputRequest)
+			if err != nil {
+				return err
+			}
+			for range cfg.Messages {
+				response, err := stream.Recv()
+				if err != nil {
+					return err
+				}
+				if err := validateResponse(&pb.SimpleResponse{Payload: response.Payload}, cfg.ResponseSize); err != nil {
+					return err
+				}
+			}
+			if _, err := stream.Recv(); err != io.EOF {
+				return fmt.Errorf("expected final OK/EOF, got %v", err)
+			}
+			return nil
+		case "bidi":
+			stream, err := client.FullDuplexCall(ctx)
+			if err != nil {
+				return err
+			}
+			for range cfg.Messages {
+				if err := stream.Send(pingRequest); err != nil {
+					return err
+				}
+				response, err := stream.Recv()
+				if err != nil {
+					return err
+				}
+				if err := validateResponse(&pb.SimpleResponse{Payload: response.Payload}, cfg.ResponseSize); err != nil {
+					return err
+				}
+			}
+			if err := stream.CloseSend(); err != nil {
+				return err
+			}
+			if _, err := stream.Recv(); err != io.EOF {
+				return fmt.Errorf("expected final OK/EOF, got %v", err)
+			}
+			return nil
+		}
+		return errors.New("unknown mode")
+	}
+}
+
 func run() error {
 	var cfg config
 	var label string
@@ -90,6 +178,9 @@ func run() error {
 	flag.StringVar(&serverVersion, "server_version", "", "server framework version")
 	flag.IntVar(&round, "round", 0, "benchmark round number")
 	flag.BoolVar(&compact, "compact", false, "emit compact JSON")
+	flag.StringVar(&cfg.Mode, "mode", "unary", "unary, client-stream, server-stream, bidi")
+	flag.IntVar(&cfg.Messages, "messages", 16, "messages per streaming RPC")
+	flag.StringVar(&cfg.TLSCA, "tls_ca", "", "trusted TLS CA; empty means plaintext")
 	flag.Parse()
 
 	if cfg.Concurrency <= 0 || cfg.Connections <= 0 {
@@ -107,15 +198,27 @@ func run() error {
 	if round < 0 {
 		return errors.New("round must be non-negative")
 	}
+	if !slices.Contains([]string{"unary", "client-stream", "server-stream", "bidi"}, cfg.Mode) ||
+		cfg.Messages <= 0 || cfg.Messages > 1024 || int64(cfg.Messages)*int64(cfg.RequestSize) > math.MaxInt32 {
+		return errors.New("invalid mode or message count/aggregate size")
+	}
 	cfg.WarmupText = cfg.Warmup.String()
 	cfg.DurationText = cfg.Duration.String()
 
 	connections := make([]*grpc.ClientConn, cfg.Connections)
 	clients := make([]pb.TestServiceClient, cfg.Connections)
+	var transport credentials.TransportCredentials = insecure.NewCredentials()
+	if cfg.TLSCA != "" {
+		var err error
+		transport, err = credentials.NewClientTLSFromFile(cfg.TLSCA, "localhost")
+		if err != nil {
+			return err
+		}
+	}
 	for i := range connections {
 		connection, err := grpc.NewClient(
 			cfg.Addr,
-			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithTransportCredentials(transport),
 			grpc.WithDisableRetry(),
 		)
 		if err != nil {
@@ -145,17 +248,15 @@ func run() error {
 	results := make(chan workerResult, cfg.Concurrency)
 	var measurementStart atomic.Int64
 	var workers sync.WaitGroup
-	workers.Add(cfg.Concurrency)
-	for workerID := 0; workerID < cfg.Concurrency; workerID++ {
+	for workerID := range cfg.Concurrency {
 		client := clients[workerID%len(clients)]
-		go func() {
-			defer workers.Done()
+		workers.Go(func() {
+			call := operation(client, cfg, request)
 			local := workerResult{latencies: make([]int64, 0, 1024)}
 			<-warmupGate
 			warmupEnd := time.Now().Add(cfg.Warmup)
 			for time.Now().Before(warmupEnd) {
-				response, err := client.UnaryCall(context.Background(), request)
-				if err != nil || validateResponse(response, cfg.ResponseSize) != nil {
+				if err := call(); err != nil {
 					local.errors++
 				}
 			}
@@ -169,16 +270,16 @@ func run() error {
 				if !started.Before(endAt) {
 					break
 				}
-				response, err := client.UnaryCall(context.Background(), request)
+				err := call()
 				latency := time.Since(started)
-				if err != nil || validateResponse(response, cfg.ResponseSize) != nil {
+				if err != nil {
 					local.errors++
 					continue
 				}
 				local.latencies = append(local.latencies, latency.Nanoseconds())
 			}
 			results <- local
-		}()
+		})
 	}
 	close(warmupGate)
 	for range cfg.Concurrency {
@@ -196,7 +297,7 @@ func run() error {
 		latencies = append(latencies, worker.latencies...)
 		errorCount += worker.errors
 	}
-	sort.Slice(latencies, func(i, j int) bool { return latencies[i] < latencies[j] })
+	slices.Sort(latencies)
 	var total int64
 	for _, latency := range latencies {
 		total += latency

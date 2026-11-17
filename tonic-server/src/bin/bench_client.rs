@@ -1,12 +1,13 @@
 use std::{env, error::Error, process, time::Duration};
 
 use grpc_testing::{
-    Payload, PayloadType, SimpleRequest, SimpleResponse, test_service_client::TestServiceClient,
+    Payload, PayloadType, ResponseParameters, SimpleRequest, SimpleResponse,
+    StreamingInputCallRequest, StreamingOutputCallRequest, test_service_client::TestServiceClient,
 };
 use prost::bytes::Bytes;
 use serde::Serialize;
 use tokio::{sync::oneshot, task::JoinHandle, time::Instant};
-use tonic::transport::{Channel, Endpoint};
+use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint};
 
 mod grpc_testing {
     tonic::include_proto!("grpc.testing");
@@ -27,6 +28,9 @@ struct Config {
     connections: usize,
     req_size: usize,
     resp_size: usize,
+    mode: String,
+    messages: usize,
+    tls_ca: String,
 }
 
 struct Options {
@@ -73,6 +77,9 @@ impl Default for Options {
                 connections: 1,
                 req_size: 1024,
                 resp_size: 1024,
+                mode: "unary".to_owned(),
+                messages: 16,
+                tls_ca: String::new(),
             },
             label: String::new(),
             server_version: String::new(),
@@ -161,6 +168,11 @@ fn parse_args() -> Result<Options, String> {
             .ok_or_else(|| format!("missing value for -{name}"))?;
         match name {
             "addr" => options.config.addr = value,
+            "mode" => options.config.mode = value,
+            "messages" => {
+                options.config.messages = value.parse().map_err(|_| "invalid messages")?
+            }
+            "tls_ca" => options.config.tls_ca = value,
             "warmup" => {
                 options.config.warmup = parse_duration(&value)?;
                 options.config.warmup_text = value;
@@ -210,6 +222,13 @@ fn parse_args() -> Result<Options, String> {
     if config.req_size > i32::MAX as usize || config.resp_size > i32::MAX as usize {
         return Err("req_size and resp_size must fit in int32".to_owned());
     }
+    if !["unary", "client-stream", "server-stream", "bidi"].contains(&config.mode.as_str())
+        || config.messages == 0
+        || config.messages > 1024
+        || config.req_size as u64 * config.messages as u64 > i32::MAX as u64
+    {
+        return Err("invalid mode or message count/aggregate size".to_owned());
+    }
     Ok(options)
 }
 
@@ -228,6 +247,8 @@ async fn run_worker(
     expected_response_size: usize,
     ready: tokio::sync::mpsc::Sender<()>,
     measurement_start: oneshot::Receiver<Instant>,
+    mode: String,
+    messages: usize,
 ) -> WorkerResult {
     let mut result = WorkerResult {
         latencies: Vec::with_capacity(4096),
@@ -236,9 +257,16 @@ async fn run_worker(
 
     let warmup_end = Instant::now() + warmup;
     while Instant::now() < warmup_end {
-        match client.unary_call(request.clone()).await {
-            Ok(response) if validate_response(response.get_ref(), expected_response_size) => {}
-            _ => result.errors += 1,
+        if !call(
+            &mut client,
+            &request,
+            &mode,
+            messages,
+            expected_response_size,
+        )
+        .await
+        {
+            result.errors += 1;
         }
     }
 
@@ -257,10 +285,17 @@ async fn run_worker(
         if started >= end_at {
             break;
         }
-        let response = client.unary_call(request.clone()).await;
+        let success = call(
+            &mut client,
+            &request,
+            &mode,
+            messages,
+            expected_response_size,
+        )
+        .await;
         let latency = started.elapsed();
-        match response {
-            Ok(response) if validate_response(response.get_ref(), expected_response_size) => {
+        match success {
+            true => {
                 result
                     .latencies
                     .push(u64::try_from(latency.as_nanos()).expect("RPC latency must fit in u64"));
@@ -269,6 +304,88 @@ async fn run_worker(
         }
     }
     result
+}
+
+async fn call(
+    client: &mut TestServiceClient<Channel>,
+    request: &SimpleRequest,
+    mode: &str,
+    messages: usize,
+    expected: usize,
+) -> bool {
+    tokio::time::timeout(Duration::from_secs(10), async {
+        let output_request = |count| StreamingOutputCallRequest {
+            response_type: 0,
+            response_parameters: vec![
+                ResponseParameters {
+                    size: expected as i32
+                };
+                count
+            ],
+            payload: request.payload.clone(),
+        };
+        match mode {
+            "unary" => {
+                let response = client.unary_call(request.clone()).await?;
+                if !validate_response(response.get_ref(), expected) {
+                    return Err(tonic::Status::data_loss("wrong payload"));
+                }
+            }
+            "client-stream" => {
+                let input = StreamingInputCallRequest {
+                    payload: request.payload.clone(),
+                };
+                let response = client
+                    .streaming_input_call(tokio_stream::iter(vec![input; messages]))
+                    .await?
+                    .into_inner();
+                let size = request.payload.as_ref().map_or(0, |p| p.body.len());
+                if response.aggregated_payload_size as usize != size * messages {
+                    return Err(tonic::Status::data_loss("wrong aggregate"));
+                }
+            }
+            "server-stream" | "bidi" => {
+                let (tx, rx) = tokio::sync::mpsc::channel(1);
+                let mut stream = if mode == "bidi" {
+                    // Some peers send response headers only after the first request.
+                    tx.send(output_request(1))
+                        .await
+                        .map_err(|_| tonic::Status::cancelled("sender closed"))?;
+                    client
+                        .full_duplex_call(tokio_stream::wrappers::ReceiverStream::new(rx))
+                        .await?
+                        .into_inner()
+                } else {
+                    client
+                        .streaming_output_call(output_request(messages))
+                        .await?
+                        .into_inner()
+                };
+                for index in 0..messages {
+                    if mode == "bidi" && index != 0 {
+                        tx.send(output_request(1))
+                            .await
+                            .map_err(|_| tonic::Status::cancelled("sender closed"))?;
+                    }
+                    let response = stream
+                        .message()
+                        .await?
+                        .ok_or_else(|| tonic::Status::data_loss("missing message"))?;
+                    if !response.payload.is_some_and(|p| p.body.len() == expected) {
+                        return Err(tonic::Status::data_loss("wrong payload"));
+                    }
+                }
+                drop(tx);
+                if stream.message().await?.is_some() {
+                    return Err(tonic::Status::data_loss("extra message"));
+                }
+            }
+            _ => return Err(tonic::Status::invalid_argument("unknown mode")),
+        }
+        Ok::<(), tonic::Status>(())
+    })
+    .await
+    .is_ok_and(|result| result.is_ok())
 }
 
 fn percentile(sorted: &[u64], fraction: f64) -> f64 {
@@ -281,7 +398,20 @@ fn percentile(sorted: &[u64], fraction: f64) -> f64 {
 
 async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
     let config = &options.config;
-    let endpoint = Endpoint::from_shared(format!("http://{}", config.addr))?;
+    let scheme = if config.tls_ca.is_empty() {
+        "http"
+    } else {
+        "https"
+    };
+    let mut endpoint = Endpoint::from_shared(format!("{scheme}://{}", config.addr))?;
+    if !config.tls_ca.is_empty() {
+        endpoint = endpoint.tls_config(
+            ClientTlsConfig::new()
+                .domain_name("localhost")
+                .ca_certificate(Certificate::from_pem(std::fs::read(&config.tls_ca)?)),
+        )?;
+    }
+    endpoint = endpoint.connect_timeout(Duration::from_secs(10));
     let mut channels = Vec::with_capacity(config.connections);
     for _ in 0..config.connections {
         channels.push(endpoint.clone().connect().await?);
@@ -311,6 +441,8 @@ async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
             config.resp_size,
             ready_tx.clone(),
             start_rx,
+            config.mode.clone(),
+            config.messages,
         )));
     }
     drop(ready_tx);

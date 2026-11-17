@@ -24,6 +24,35 @@ RESP_SIZE=${RESP_SIZE:-1024}
 CLIENT_IMPL=${CLIENT_IMPL:-tonic}
 CLIENT_THREADS=${CLIENT_THREADS:-4}
 RESULT_FILE=${RESULT_FILE:-results/raw-${CLIENT_IMPL}-client.jsonl}
+MODE=${MODE:-unary}
+MESSAGES=${MESSAGES:-16}
+SERVER_THREADS=${SERVER_THREADS:-1}
+TLS=${TLS:-0}
+TLS_CERT=${TLS_CERT:-}
+TLS_KEY=${TLS_KEY:-}
+TLS_CA=${TLS_CA:-}
+CPP_API=${CPP_API:-sync}
+FRAMEWORKS=${FRAMEWORKS:-"grpc-lite grpc-go tonic grpc-cpp"}
+for framework in $FRAMEWORKS; do
+  case "$framework" in grpc-lite | grpc-go | tonic | grpc-cpp) ;; *) exit 1 ;; esac
+done
+
+case "$MODE" in unary | client-stream | server-stream | bidi) ;; *) exit 1 ;; esac
+case "$CPP_API" in sync | callback) ;; *) exit 1 ;; esac
+case "$TLS" in 0 | 1) ;; *) exit 1 ;; esac
+if [[ ! $SERVER_THREADS =~ ^[1-9][0-9]*$ || ! $MESSAGES =~ ^[1-9][0-9]*$ ]] || ((MESSAGES > 1024)); then
+  printf 'invalid SERVER_THREADS or MESSAGES\n' >&2
+  exit 1
+fi
+if [[ $MODE != unary && $SERVER_THREADS != 1 ]]; then
+  printf 'grpc-lite interop streaming requires one reactor\n' >&2
+  exit 1
+fi
+if [[ $TLS == 1 ]]; then
+  for file in "$TLS_CERT" "$TLS_KEY" "$TLS_CA"; do
+    [[ -r $file ]] || { printf 'unreadable TLS file: %s\n' "$file" >&2; exit 1; }
+  done
+fi
 
 if [[ ! $CLIENT_PROCESSES =~ ^[1-9][0-9]*$ ]]; then
   printf 'CLIENT_PROCESSES must be positive\n' >&2
@@ -263,18 +292,26 @@ start_server() {
   fi
 
   : >"$log_file"
+  local -a lite_tls=(--use_tls=false) go_tls=() lite_reactors=()
+  if [[ $SERVER_THREADS != 1 ]]; then
+    lite_reactors=("--reactors=$SERVER_THREADS")
+  fi
+  if [[ $TLS == 1 ]]; then
+    lite_tls=(--use_tls=true "--tls_cert_file=$TLS_CERT" "--tls_key_file=$TLS_KEY")
+    go_tls=("-cert=$TLS_CERT" "-key=$TLS_KEY")
+  fi
   # taskset execs its command in place, so $! is the actual server PID once ready.
   case "$label" in
     grpc-lite)
       taskset -c "$SERVER_CPU" "$GRPC_LITE_SERVER" \
-        --port="$port" --use_tls=false >"$log_file" 2>&1 &
+        --port="$port" "${lite_reactors[@]}" "${lite_tls[@]}" >"$log_file" 2>&1 &
       ;;
     grpc-go)
-      GOMAXPROCS=1 taskset -c "$SERVER_CPU" "$ROOT/bin/go-server" \
-        -addr="127.0.0.1:$port" >"$log_file" 2>&1 &
+      GOMAXPROCS="$SERVER_THREADS" taskset -c "$SERVER_CPU" "$ROOT/bin/go-server" \
+        -addr="127.0.0.1:$port" "${go_tls[@]}" >"$log_file" 2>&1 &
       ;;
     tonic)
-      SERVER_THREADS=1 SERVER_ADDR="127.0.0.1:$port" \
+      SERVER_THREADS="$SERVER_THREADS" SERVER_ADDR="127.0.0.1:$port" \
         taskset -c "$SERVER_CPU" "$ROOT/bin/tonic-server" >"$log_file" 2>&1 &
       ;;
     grpc-cpp)
@@ -349,6 +386,9 @@ run_case() {
     -round="$round"
     -label="$label"
     -server_version="$server_version"
+    -mode="$MODE"
+    -messages="$MESSAGES"
+    -tls_ca="$([[ $TLS == 1 ]] && printf '%s' "$TLS_CA" || true)"
     -compact
   )
   CLIENT_PIDS=()
@@ -486,16 +526,31 @@ run_case() {
     printf 'client produced invalid JSON for %s round %s\n' "$label" "$round" >&2
     return 1
   fi
-  printf '%s\n' "$json" >>"$RESULT_FILE"
+   jq -ce --arg mode "$MODE" --argjson tls "$TLS" --arg api "$CPP_API" \
+     --argjson threads "$SERVER_THREADS" --arg cpus "$SERVER_CPU" \
+     --arg clients "${CONFIGURED_CLIENT_CPU_SETS[*]}" \
+     --argjson start "$start_wall_ns" --argjson end "$end_wall_ns" \
+     '.config += {mode: $mode, tls: ($tls == 1), cpp_api: $api,
+       server_threads: $threads, server_cpus: $cpus, client_cpu_sets: $clients}
+      | .measurement_window = {start_unix_ns: $start, end_unix_ns: $end}
+      | if .errors != 0 or .completed <= 0 then error("failed or empty measurement") else . end' \
+     <<<"$json" >>"$RESULT_FILE"
 }
 
 labels=(grpc-lite grpc-go tonic grpc-cpp)
+export CPP_API
+if [[ $TLS == 1 ]]; then
+  export TLS_CERT TLS_KEY
+else
+  unset TLS_CERT TLS_KEY
+fi
 ports=("$GRPC_LITE_PORT" "$GRPC_GO_PORT" "$TONIC_PORT" "$GRPC_CPP_PORT")
-versions=("$GRPC_LITE_VERSION" grpc-go/1.82.1 tonic/0.14.6 grpc-cpp/1.48.4)
+versions=("$GRPC_LITE_VERSION" grpc-go/1.82.1 tonic/0.14.6 "${GRPC_CPP_VERSION:-grpc-cpp/1.48.4}")
 
 for ((round = 1; round <= ROUNDS; round++)); do
   for ((offset = 0; offset < ${#labels[@]}; offset++)); do
     index=$(((round - 1 + offset) % ${#labels[@]}))
+    [[ " $FRAMEWORKS " == *" ${labels[index]} "* ]] || continue
     run_case "$round" "${labels[index]}" "${ports[index]}" "${versions[index]}"
   done
 done

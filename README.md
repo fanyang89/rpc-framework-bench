@@ -1,13 +1,106 @@
-# Cross-framework unary gRPC benchmark
+# Cross-framework gRPC benchmark
 
-This repository measures four plaintext unary gRPC servers with Tonic and Go
+This repository measures four gRPC servers with Tonic and Go
 load generators using a wire-compatible
-`grpc.testing.TestService/UnaryCall` schema. It distinguishes low-concurrency
+`grpc.testing.TestService` schema. It distinguishes low-concurrency
 latency matrices from saturation sweeps; only a validated saturation sweep can
 support a server-capacity comparison.
 
-The harness does not enable TLS, compression, retries, reflection, or
-application logging.
+The default run is plaintext unary. The extended matrix adds TLS, all three
+streaming cardinalities, multicore unary servers, and the C++ callback API.
+Compression, retries, reflection, and application logging remain disabled.
+
+## Benchkit cross-protocol comparison
+
+`campaign_rpc.py` adds brpc, Apache Thrift and Cap'n Proto alongside the five
+gRPC server configurations, using a common closed-loop C++ load driver.
+Benchkit manages 120 configurations with three repetitions and exports six
+PNG/PDF chart pairs. See `native/README.md` for builds and reproduction.
+
+Completed reports:
+
+- `results/2026-11-16-benchkit-native/README.md`: 360 runs, small-message latency,
+  concurrency, large/asymmetric payloads and multicore; includes the combined
+  interpretation with prior TLS/streaming results.
+- `results/2026-11-16-extended/README.md`: 420 gRPC TLS/streaming/multicore runs.
+
+The matrices use different load generators and connection layouts. Compare
+within each matrix; neither establishes universal server capacity rankings.
+
+## Extended matrix
+
+Build grpc-lite's official interop server with TLS and `ReleaseFast`. The
+extended matrix requires its `--reactors=N` option; more than one reactor
+exposes unary methods only because the interop stream-state map is loop-confined.
+This is a benchmark-handler limitation, not a transport capability claim.
+
+Build gRPC C++ with its pinned protobuf/Abseil dependencies and install to a
+private prefix. CMake imported targets handle its static transitive dependencies:
+
+```sh
+CMAKE_PREFIX_PATH=/path/to/grpc-install ./build.sh
+bash scripts/certificates.sh
+go test -race ./...
+cargo test --locked --manifest-path tonic-server/Cargo.toml
+python3 scripts/tls-validation-test.py
+export GRPC_LITE_SERVER=/absolute/path/to/grpc-lite-interop-server
+export GRPC_LITE_VERSION=grpc-lite/commit-and-local-patch
+export GRPC_CPP_VERSION=grpc-cpp/1.84.3
+python3 extended.py --smoke --output results/sweeps/extended-smoke
+python3 extended.py --output results/sweeps/extended-measurement
+```
+
+Each output directory must be new. The driver saves binary hashes, host details,
+compiler versions, source diff, per-case CPU/time/configuration, host CPU/network
+samples, and a summary. Smoke mode validates 140 cases; measurement mode runs
+420 cases (three rounds of the same matrix):
+
+| Dimension | Coverage |
+| --- | --- |
+| Transport | Plaintext and certificate-verified TLS |
+| RPC | Unary, client-stream, server-stream, bidi ping-pong |
+| Unary server CPU budget | 1, 4, 8 physical cores |
+| Streaming server CPU budget | 1 physical core |
+| C++ server API | Synchronous and callback/reactor |
+| Unary payload | 1 KiB on 1/4/8 cores; 64 KiB on one core |
+| Streaming payload | 1 KiB per message; 16 messages per RPC |
+| Clients | Go and Tonic, two processes, 16 connections each |
+| Load per process | Unary concurrency 256; streaming concurrency 16 |
+| Measurement | 2-second warmup, 5 seconds, three rounds |
+
+The matrix requires CPUs 0-15 to be distinct physical cores. Clients use `0-3`
+and `4-7`; servers use `15`, `12-15`, or `8-15`. CPU affinity is the common
+server budget. Go uses matching `GOMAXPROCS`, Tonic matching Tokio workers,
+and grpc-lite matching reactors. C++ uses its runtime's default worker policy
+inside the assigned affinity; `server_threads` is not an observed C++ thread count.
+
+One operation is **one complete RPC**, including stream creation, all messages,
+client half-close where applicable, and the final OK status:
+
+- Client-stream sends 16 payloads and validates the aggregate byte count.
+- Server-stream requests 16 responses and validates their lengths and final EOF.
+- Bidi performs 16 sequential request/response exchanges, then half-closes and
+  validates final EOF. It is ping-pong, not independently saturated send/receive.
+- Streaming message/s can be derived as RPC/s × 16 in the streaming direction.
+  Bidi counts 16 exchanges (32 application messages) per RPC.
+
+The two generators validate payload lengths, message counts, aggregates and
+terminal status, with a 10-second deadline per complete RPC. TLS uses a generated
+local CA and a `localhost` SAN certificate; neither client disables verification.
+Certificates and private keys stay under ignored `bin/certs/` and expire after
+seven days. TLS versions/ciphers follow each stack's defaults; this is an
+end-to-end TLS-stack comparison, not a fixed-cipher crypto benchmark. Warmup
+amortizes connection setup; this matrix does not measure TLS handshake capacity.
+
+`run.sh` also accepts `MODE`, `MESSAGES`, `TLS=0|1`, `TLS_CA`, `TLS_CERT`,
+`TLS_KEY`, `SERVER_THREADS`, `SERVER_CPU` (a CPU set), `CPP_API=sync|callback`,
+and `FRAMEWORKS` (space-separated labels). Streaming with more than one
+grpc-lite reactor is rejected. The summarizer separates mode, TLS, C++ API,
+server workers, payload/message sizes, durations, and server versions.
+Multi-process latency percentiles remain null.
+
+The matrix samples fixed loads. It is not proof of saturation for every
+framework or CPU count; check client/server telemetry before inferring capacity.
 
 ## Requirements
 
@@ -17,6 +110,7 @@ application logging.
 - Rust and Cargo with the toolchain accepted by `tonic-server/Cargo.lock`
 - `protoc`, `grpc_cpp_plugin`, and `pkg-config`
 - gRPC C++, protobuf development libraries, and a C++17 compiler
+- CMake, Ninja, and gRPC/protobuf CMake package configurations
 - A separately built grpc-lite interop server
 
 Set `GRPC_LITE_SERVER` to the grpc-lite executable when running benchmarks. The
@@ -28,10 +122,11 @@ grpc-lite source tree is not required to be adjacent to this repository.
 ./build.sh
 ```
 
-The script creates `bin/` and `cpp-server/generated/`, downloads the locked Go
+The script creates `bin/`, downloads the locked Go
 modules, builds stripped Go binaries in read-only module mode, builds
 `bin/tonic-client` and `bin/tonic-server` with the checked-in Cargo lock file,
-generates C++ protobuf/gRPC sources, and compiles the synchronous C++ server.
+generates C++ protobuf/gRPC sources under `bin/cpp-build`, and compiles the
+C++ server supporting both synchronous and callback APIs.
 Generated C++ files and all binaries are intentionally ignored by Git.
 
 ## Servers
@@ -311,6 +406,11 @@ The checked-in result used:
 
 The grpc-lite version is supplied at run time through `GRPC_LITE_VERSION`; the
 harness does not assume a source revision.
+
+When rebuilding the C++ server against a different gRPC release, set
+`GRPC_CPP_VERSION` to the linked version (for example `grpc-cpp/1.84.3`).
+Set `CMAKE_PREFIX_PATH` to that installation when running `build.sh`; CMake
+uses its compiler plugins and libraries together.
 
 ## Results
 

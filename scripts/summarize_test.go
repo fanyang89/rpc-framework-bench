@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -66,7 +69,8 @@ func TestReadResultsLegacySchemaFallback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	key := groupKey{client: "legacy-client", server: "legacy-server", processes: 1, concurrency: 4, connections: 1}
+	key := groupKey{client: "legacy-client", server: "legacy-server", processes: 1, concurrency: 4, connections: 1,
+		version: "legacy-server/1", scenario: scenario{RequestSize: 1024, ResponseSize: 1024, Warmup: "2s", Duration: "10s"}}
 	group := groups[key]
 	if group == nil {
 		t.Fatalf("missing legacy group %v", key)
@@ -82,7 +86,8 @@ func TestReadResultsSingleProcessTelemetry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	key := groupKey{client: "single-client", server: "single-server", processes: 1, concurrency: 256, connections: 8}
+	key := groupKey{client: "single-client", server: "single-server", processes: 1, concurrency: 256, connections: 8,
+		version: "single-server/1", scenario: scenario{RequestSize: 1024, ResponseSize: 1024, Warmup: "2s", Duration: "10s"}}
 	group := groups[key]
 	if group == nil {
 		t.Fatalf("missing single-process group %v", key)
@@ -101,7 +106,8 @@ func TestReadResultsAggregateGroupingAndNullableLatency(t *testing.T) {
 		t.Fatalf("group count = %d; want 3", len(groups))
 	}
 
-	key := groupKey{client: "aggregate-client", server: "aggregate-server", processes: 2, concurrency: 512, connections: 16}
+	key := groupKey{client: "aggregate-client", server: "aggregate-server", processes: 2, concurrency: 512, connections: 16,
+		version: "aggregate-server/1", scenario: scenario{RequestSize: 1024, ResponseSize: 1024, Warmup: "2s", Duration: "10s"}}
 	group := groups[key]
 	if group == nil {
 		t.Fatalf("missing aggregate group %v", key)
@@ -116,12 +122,53 @@ func TestReadResultsAggregateGroupingAndNullableLatency(t *testing.T) {
 		t.Fatalf("aggregate CPU median = %q; want 96.500", got)
 	}
 
-	connectionsKey := groupKey{client: "aggregate-client", server: "aggregate-server", processes: 2, concurrency: 512, connections: 8}
+	connectionsKey := key
+	connectionsKey.connections = 8
 	if groups[connectionsKey] == nil {
 		t.Fatalf("different total connections were merged: missing %v", connectionsKey)
 	}
-	processesKey := groupKey{client: "aggregate-client", server: "aggregate-server", processes: 4, concurrency: 512, connections: 16}
+	processesKey := key
+	processesKey.processes = 4
 	if groups[processesKey] == nil {
 		t.Fatalf("different process counts were merged: missing %v", processesKey)
+	}
+}
+
+func TestSeparateScenarios(t *testing.T) {
+	base := result{Round: 1, Label: "server", ClientFrameworkVersion: "client", ServerVersion: "v1"}
+	base.Config.Concurrency, base.Config.Connections = 4, 1
+	variants := []result{base}
+	for _, change := range []func(*result){
+		func(r *result) { r.Config.Mode = "bidi" },
+		func(r *result) { r.Config.TLS = true },
+		func(r *result) { r.Config.ServerThreads = 4 },
+		func(r *result) { r.Config.CPPAPI = "callback" },
+		func(r *result) { r.Config.Messages = 16 },
+		func(r *result) { r.Config.RequestSize = 65536 },
+		func(r *result) { r.ServerVersion = "v2" },
+	} {
+		record := base
+		change(&record)
+		variants = append(variants, record)
+	}
+	path := filepath.Join(t.TempDir(), "results.jsonl")
+	file, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, record := range variants {
+		if err := json.NewEncoder(file).Encode(record); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	groups := make(map[groupKey]*metrics)
+	if err := readResults(path, groups); err != nil {
+		t.Fatal(err)
+	}
+	if len(groups) != len(variants) {
+		t.Fatalf("merged distinct scenarios: %d groups", len(groups))
 	}
 }

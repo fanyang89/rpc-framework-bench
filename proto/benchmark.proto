@@ -21,6 +21,31 @@ message SimpleResponse {
   Payload payload = 1;
 }
 
+message ResponseParameters {
+  int32 size = 1;
+}
+
+message StreamingOutputCallRequest {
+  PayloadType response_type = 1;
+  repeated ResponseParameters response_parameters = 2;
+  Payload payload = 3;
+}
+
+message StreamingOutputCallResponse {
+  Payload payload = 1;
+}
+
+message StreamingInputCallRequest {
+  Payload payload = 1;
+}
+
+message StreamingInputCallResponse {
+  int32 aggregated_payload_size = 1;
+}
+
 service TestService {
   rpc UnaryCall(SimpleRequest) returns (SimpleResponse);
+  rpc StreamingOutputCall(StreamingOutputCallRequest) returns (stream StreamingOutputCallResponse);
+  rpc StreamingInputCall(stream StreamingInputCallRequest) returns (StreamingInputCallResponse);
+  rpc FullDuplexCall(stream StreamingOutputCallRequest) returns (stream StreamingOutputCallResponse);
 }
