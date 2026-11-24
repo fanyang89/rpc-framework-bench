@@ -1,0 +1,33 @@
+{
+    "identity": {
+        "experiment_name": "rpc-native-smoke",
+        "benchmark_name": "rpcbenchmark"
+    },
+    "constants": {
+        "hostname": "msa",
+        "architecture": "x86_64",
+        "transport": "plaintext"
+    },
+    "inputs": {
+        "framework": "thrift",
+        "scenario": "multicore",
+        "request_bytes": 1024,
+        "response_bytes": 1024,
+        "concurrency": 128,
+        "server_cores": 1
+    },
+    "rep": 1,
+    "outputs": {
+        "completed": 12442,
+        "errors": 0,
+        "seconds": 0.101113,
+        "ops_per_second": 123050,
+        "p50_us": 1021.54,
+        "p95_us": 1080.74,
+        "p99_us": 1116.6,
+        "client_cpu_percent": 52.743160439969294,
+        "server_cpu_percent": 57.12414277427323,
+        "payload_mib_s": 240.33203125
+    },
+    "pretty": {}
+}

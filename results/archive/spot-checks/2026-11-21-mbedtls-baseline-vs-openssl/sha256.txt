@@ -1,0 +1,4 @@
+6a60ef9e41f4c2be196d3788b72f33225b482d4e13fc236ed585ff2f6bd5c54f  /home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-comparison/zig-out/bin/grpc-lite-interop-server
+5b3b5fde4a591df9c519bf1279fe7d70a8956baa821d4fb568390825817fc1c3  /tmp/opencode/grpc-lite-bench-af19148/zig-out/bin/grpc-lite-interop-server
+888d0a5d8feb091d17bc0f9e6afea6c3033497a27686f713108ff07d2228e5e2  /home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/bench-client
+a0027a09a141d3bb50306ee27f668ade29ced4acb71851a0e46b2ca0dbdc0f4f  /home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/tonic-client

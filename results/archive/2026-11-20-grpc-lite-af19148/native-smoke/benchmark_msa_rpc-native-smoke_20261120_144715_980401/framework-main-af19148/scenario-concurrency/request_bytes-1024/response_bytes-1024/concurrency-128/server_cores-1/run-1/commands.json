@@ -1,0 +1,24 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/tmp/opencode/grpc-lite-bench-af19148/zig-out/bin/grpc-lite-interop-server",
+    "--port=36521",
+    "--reactors=1",
+    "--use_tls=false"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/grpc-native-build/grpc-native",
+    "client",
+    "127.0.0.1:36521",
+    "128",
+    "1024",
+    "1024",
+    "100",
+    "100"
+  ]
+}

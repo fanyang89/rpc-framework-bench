@@ -1,0 +1,24 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/native-build/capnp-native",
+    "server",
+    "43687",
+    "1"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/native-build/capnp-native",
+    "client",
+    "127.0.0.1:43687",
+    "1",
+    "1024",
+    "1024",
+    "1000",
+    "5000"
+  ]
+}

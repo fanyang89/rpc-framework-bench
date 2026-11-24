@@ -1,0 +1,1 @@
+{"completed": 326329, "errors": 0, "seconds": 5.00001, "ops_per_second": 65265.7, "p50_us": 14.878, "p95_us": 17.904, "p99_us": 19.697, "client_cpu_percent": 27.681279605163446, "server_cpu_percent": 39.23154522568981, "payload_mib_s": 127.4720703125}

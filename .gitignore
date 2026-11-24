@@ -1,7 +1,9 @@
 /bin/
-/tonic-server/target/
-/cpp-server/generated/
+/workloads/rust-tonic/target/
+/workloads/cpp-grpc/generated/
 /results/sweeps/
+__pycache__/
+.ruff_cache/
 
 .DS_Store
 *.swp

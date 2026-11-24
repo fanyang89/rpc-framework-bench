@@ -1,0 +1,22 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/cpp-server",
+    "127.0.0.1:58683"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/grpc-native-build/grpc-native",
+    "client",
+    "127.0.0.1:58683",
+    "128",
+    "1024",
+    "1024",
+    "1000",
+    "5000"
+  ]
+}

@@ -1,0 +1,252 @@
+unary-tls0-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes1024-go-sync.jsonl
+unary-tls0-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes1024-go-callback.jsonl
+unary-tls0-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes1024-tonic-sync.jsonl
+unary-tls0-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes1024-tonic-callback.jsonl
+unary-tls0-cores4-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores4-bytes1024-go-sync.jsonl
+unary-tls0-cores4-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores4-bytes1024-go-callback.jsonl
+unary-tls0-cores4-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores4-bytes1024-tonic-sync.jsonl
+unary-tls0-cores4-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores4-bytes1024-tonic-callback.jsonl
+unary-tls0-cores8-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores8-bytes1024-go-sync.jsonl
+unary-tls0-cores8-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores8-bytes1024-go-callback.jsonl
+unary-tls0-cores8-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores8-bytes1024-tonic-sync.jsonl
+unary-tls0-cores8-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores8-bytes1024-tonic-callback.jsonl
+client-stream-tls0-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls0-cores1-bytes1024-go-sync.jsonl
+client-stream-tls0-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls0-cores1-bytes1024-go-callback.jsonl
+client-stream-tls0-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls0-cores1-bytes1024-tonic-sync.jsonl
+client-stream-tls0-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls0-cores1-bytes1024-tonic-callback.jsonl
+server-stream-tls0-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls0-cores1-bytes1024-go-sync.jsonl
+server-stream-tls0-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls0-cores1-bytes1024-go-callback.jsonl
+server-stream-tls0-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls0-cores1-bytes1024-tonic-sync.jsonl
+server-stream-tls0-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls0-cores1-bytes1024-tonic-callback.jsonl
+bidi-tls0-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls0-cores1-bytes1024-go-sync.jsonl
+bidi-tls0-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls0-cores1-bytes1024-go-callback.jsonl
+bidi-tls0-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls0-cores1-bytes1024-tonic-sync.jsonl
+bidi-tls0-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls0-cores1-bytes1024-tonic-callback.jsonl
+unary-tls0-cores1-bytes65536-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes65536-go-sync.jsonl
+unary-tls0-cores1-bytes65536-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes65536-go-callback.jsonl
+unary-tls0-cores1-bytes65536-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes65536-tonic-sync.jsonl
+unary-tls0-cores1-bytes65536-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls0-cores1-bytes65536-tonic-callback.jsonl
+unary-tls1-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes1024-go-sync.jsonl
+unary-tls1-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes1024-go-callback.jsonl
+unary-tls1-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes1024-tonic-sync.jsonl
+unary-tls1-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes1024-tonic-callback.jsonl
+unary-tls1-cores4-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores4-bytes1024-go-sync.jsonl
+unary-tls1-cores4-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores4-bytes1024-go-callback.jsonl
+unary-tls1-cores4-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores4-bytes1024-tonic-sync.jsonl
+unary-tls1-cores4-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores4-bytes1024-tonic-callback.jsonl
+unary-tls1-cores8-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores8-bytes1024-go-sync.jsonl
+unary-tls1-cores8-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores8-bytes1024-go-callback.jsonl
+unary-tls1-cores8-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores8-bytes1024-tonic-sync.jsonl
+unary-tls1-cores8-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores8-bytes1024-tonic-callback.jsonl
+client-stream-tls1-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls1-cores1-bytes1024-go-sync.jsonl
+client-stream-tls1-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls1-cores1-bytes1024-go-callback.jsonl
+client-stream-tls1-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls1-cores1-bytes1024-tonic-sync.jsonl
+client-stream-tls1-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/client-stream-tls1-cores1-bytes1024-tonic-callback.jsonl
+server-stream-tls1-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls1-cores1-bytes1024-go-sync.jsonl
+server-stream-tls1-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls1-cores1-bytes1024-go-callback.jsonl
+server-stream-tls1-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls1-cores1-bytes1024-tonic-sync.jsonl
+server-stream-tls1-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/server-stream-tls1-cores1-bytes1024-tonic-callback.jsonl
+bidi-tls1-cores1-bytes1024-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls1-cores1-bytes1024-go-sync.jsonl
+bidi-tls1-cores1-bytes1024-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls1-cores1-bytes1024-go-callback.jsonl
+bidi-tls1-cores1-bytes1024-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls1-cores1-bytes1024-tonic-sync.jsonl
+bidi-tls1-cores1-bytes1024-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/bidi-tls1-cores1-bytes1024-tonic-callback.jsonl
+unary-tls1-cores1-bytes65536-go-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes65536-go-sync.jsonl
+unary-tls1-cores1-bytes65536-go-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes65536-go-callback.jsonl
+unary-tls1-cores1-bytes65536-tonic-sync
+round=1 label=grpc-lite port=25051
+round=1 label=grpc-go port=25052
+round=1 label=tonic port=25053
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes65536-tonic-sync.jsonl
+unary-tls1-cores1-bytes65536-tonic-callback
+round=1 label=grpc-cpp port=25054
+wrote /home/fanmi/workspace/rpc-framework-bench/results/2026-11-21-full-af19148/extended-smoke/unary-tls1-cores1-bytes65536-tonic-callback.jsonl
