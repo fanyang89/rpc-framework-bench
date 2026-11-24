@@ -124,6 +124,6 @@ Add `--smoke` to `campaign_native.py` or `campaign_extended.py` for a fast end-t
 ## References
 
 - [Official gRPC Benchmarking Guide](https://grpc.io/docs/guides/benchmarking/)
-- [Benchkit Benchmarking Framework](https://github.com/open-sourcing/benchkit)
+- [Benchkit Benchmarking Framework](https://github.com/open-s4c/benchkit)
 - [gRPC-Go Benchmark Sources](https://github.com/grpc/grpc-go/tree/master/benchmark)
 - [Tonic 0.14.6 Documentation](https://docs.rs/tonic/0.14.6/tonic/)

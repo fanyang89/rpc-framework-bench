@@ -3,7 +3,7 @@
 > **Campaign:** `2026-11-21-full-af19148` &nbsp;|&nbsp; **Formal Runs:** 906 (+ 302 smoke) &nbsp;|&nbsp; **Completed RPCs:** 563,735,713 &nbsp;|&nbsp; **Errors:** 0
 >
 > **Host:** AMD Ryzen 9 9955HX (16 physical cores / 32 threads, `performance` governor, Linux x86_64, localhost TCP)  
-> **Charts:** Generated via [Benchkit](https://github.com/open-sourcing/benchkit) (`benchkit.lwchart`) in both PNG and vector PDF — see [`harness/plot_report.py`](../harness/plot_report.py) to regenerate.
+> **Charts:** Generated via [Benchkit](https://github.com/open-s4c/benchkit) (`benchkit.lwchart`) in both PNG and vector PDF — see [`harness/plot_report.py`](../harness/plot_report.py) to regenerate.
 
 ---
 
