@@ -16,18 +16,30 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// Shared read-only zero buffer avoids per-RPC multi-MiB heap allocations and GC
+// pressure on large-payload benchmarks, matching official grpc-go benchmark servers.
+var zeroPayload = make([]byte, 1<<20)
+
+func payloadBody(size int) []byte {
+	if size <= len(zeroPayload) {
+		return zeroPayload[:size]
+	}
+	return make([]byte, size)
+}
+
 type testService struct {
 	pb.UnimplementedTestServiceServer
 }
 
 func (testService) UnaryCall(_ context.Context, request *pb.SimpleRequest) (*pb.SimpleResponse, error) {
-	if request.GetResponseSize() < 0 {
+	size := int(request.GetResponseSize())
+	if size < 0 {
 		return nil, status.Error(codes.InvalidArgument, "response_size must be non-negative")
 	}
 	return &pb.SimpleResponse{
 		Payload: &pb.Payload{
 			Type: pb.PayloadType_COMPRESSABLE,
-			Body: make([]byte, int(request.GetResponseSize())),
+			Body: payloadBody(size),
 		},
 	}, nil
 }
@@ -37,7 +49,12 @@ func (testService) StreamingOutputCall(request *pb.StreamingOutputCallRequest, s
 		if parameter.Size < 0 {
 			return status.Error(codes.InvalidArgument, "negative response size")
 		}
-		if err := stream.Send(&pb.StreamingOutputCallResponse{Payload: &pb.Payload{Body: make([]byte, parameter.Size)}}); err != nil {
+		if err := stream.Send(&pb.StreamingOutputCallResponse{
+			Payload: &pb.Payload{
+				Type: pb.PayloadType_COMPRESSABLE,
+				Body: payloadBody(int(parameter.Size)),
+			},
+		}); err != nil {
 			return err
 		}
 	}

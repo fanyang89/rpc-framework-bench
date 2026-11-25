@@ -1,0 +1,366 @@
+[INFO] Total number of runs: 120
+[INFO] Expected duration: 120
+[RUN] uname -a
+[OUT]
+Linux msa 7.3.3-300.fc45.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Nov  6 20:37:28 UTC 2026 x86_64 GNU/Linux
+[INFO] Run   1/120, current campaign expected remaining time: ~120 seconds, i.e. ~0:02:00
+[INFO] Full campaign suite estimated remaining time: ~120 seconds, i.e. ~0:02:00
+[RESULT] framework=capnp scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=49840 errors=0 seconds=0.100265 ops_per_second=497082 p50_us=256 p95_us=401.408 p99_us=434.176 min_us=62.147 max_us=1663.53 mean_us=257.107 client_cpu_percent=280.73007679738595 server_cpu_percent=176.76570920295111 payload_mib_s=970.86328125
+[INFO] Run   2/120, current campaign expected remaining time: ~119 seconds, i.e. ~0:01:59
+[INFO] Full campaign suite estimated remaining time: ~119 seconds, i.e. ~0:01:59
+[RESULT] framework=thrift scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=6260 errors=0 seconds=0.100014 ops_per_second=62591 p50_us=15.552 p95_us=19.008 p99_us=21.888 min_us=11.862 max_us=59.853 mean_us=15.9676 client_cpu_percent=27.64658310502721 server_cpu_percent=32.710660672242945 payload_mib_s=122.248046875
+[INFO] Run   3/120, current campaign expected remaining time: ~118 seconds, i.e. ~0:01:58
+[INFO] Full campaign suite estimated remaining time: ~118 seconds, i.e. ~0:01:58
+[RESULT] framework=tonic scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=6845 errors=0 seconds=0.10024 ops_per_second=68285.9 p50_us=479.232 p95_us=493.568 p99_us=530.432 min_us=47.94 max_us=785.299 mean_us=468.176 client_cpu_percent=172.37773830226814 server_cpu_percent=54.53582301059373 payload_mib_s=133.3708984375
+[INFO] Run   4/120, current campaign expected remaining time: ~117 seconds, i.e. ~0:01:57
+[INFO] Full campaign suite estimated remaining time: ~117 seconds, i.e. ~0:01:57
+[RESULT] framework=brpc scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=3572 errors=0 seconds=0.10048 ops_per_second=35549.2 p50_us=667.648 p95_us=870.4 p99_us=8372.22 min_us=152.327 max_us=41308.7 mean_us=899.418 client_cpu_percent=99.01263387367902 server_cpu_percent=72.52942203527408 payload_mib_s=4443.65
+[INFO] Run   5/120, current campaign expected remaining time: ~116 seconds, i.e. ~0:01:56
+[INFO] Full campaign suite estimated remaining time: ~116 seconds, i.e. ~0:01:56
+[RESULT] framework=brpc scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=12490 errors=0 seconds=0.100072 ops_per_second=124811 p50_us=38.912 p95_us=55.68 p99_us=60.16 min_us=18.495 max_us=40659.2 mean_us=64.0645 client_cpu_percent=111.37744849753979 server_cpu_percent=59.85534704147638 payload_mib_s=243.771484375
+[INFO] Run   6/120, current campaign expected remaining time: ~115 seconds, i.e. ~0:01:55
+[INFO] Full campaign suite estimated remaining time: ~115 seconds, i.e. ~0:01:55
+[RESULT] framework=tonic scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=6935 errors=0 seconds=0.100928 ops_per_second=68712.5 p50_us=1900.54 p95_us=1933.31 p99_us=1953.79 min_us=56.767 max_us=2255.26 mean_us=1860.13 client_cpu_percent=168.10031014043557 server_cpu_percent=51.7386020878572 payload_mib_s=134.2041015625
+[INFO] Run   7/120, current campaign expected remaining time: ~114 seconds, i.e. ~0:01:54
+[INFO] Full campaign suite estimated remaining time: ~114 seconds, i.e. ~0:01:54
+[RESULT] framework=grpc-lite scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=3360 errors=0 seconds=0.100018 ops_per_second=33593.9 p50_us=29.376 p95_us=32.192 p99_us=37.248 min_us=26.069 max_us=87.375 mean_us=29.7513 client_cpu_percent=63.471517586327906 server_cpu_percent=14.04423542645665 payload_mib_s=4.10081787109375
+[INFO] Run   8/120, current campaign expected remaining time: ~113 seconds, i.e. ~0:01:53
+[INFO] Full campaign suite estimated remaining time: ~113 seconds, i.e. ~0:01:53
+[RESULT] framework=tonic scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=6872 errors=0 seconds=0.100078 ops_per_second=68666.8 p50_us=129.536 p95_us=137.728 p99_us=147.968 min_us=33.423 max_us=231.266 mean_us=116.438 client_cpu_percent=169.54520434831858 server_cpu_percent=55.346337946469795 payload_mib_s=134.11484375
+[INFO] Run   9/120, current campaign expected remaining time: ~112 seconds, i.e. ~0:01:52
+[INFO] Full campaign suite estimated remaining time: ~112 seconds, i.e. ~0:01:52
+[RESULT] framework=grpc-cpp-callback scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=6907 errors=0 seconds=0.100358 ops_per_second=68823.3 p50_us=437.248 p95_us=899.072 p99_us=1576.96 min_us=32.201 max_us=8414.85 mean_us=464.495 client_cpu_percent=135.18287141106492 server_cpu_percent=67.86538564558865 payload_mib_s=134.4205078125
+[INFO] Run  10/120, current campaign expected remaining time: ~111 seconds, i.e. ~0:01:51
+[INFO] Full campaign suite estimated remaining time: ~111 seconds, i.e. ~0:01:51
+[RESULT] framework=capnp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=13076 errors=0 seconds=0.100113 ops_per_second=130613 p50_us=244.736 p95_us=317.44 p99_us=327.68 min_us=35.086 max_us=541.039 mean_us=244.816 client_cpu_percent=80.45799715722643 server_cpu_percent=53.8630943311977 payload_mib_s=255.103515625
+[INFO] Run  11/120, current campaign expected remaining time: ~110 seconds, i.e. ~0:01:50
+[INFO] Full campaign suite estimated remaining time: ~110 seconds, i.e. ~0:01:50
+[RESULT] framework=grpc-lite scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=3298 errors=0 seconds=0.100002 ops_per_second=32979.4 p50_us=29.824 p95_us=33.28 p99_us=38.912 min_us=27.522 max_us=71.695 mean_us=30.3052 client_cpu_percent=63.62194673894075 server_cpu_percent=18.42739020555397 payload_mib_s=64.412890625
+[INFO] Run  12/120, current campaign expected remaining time: ~109 seconds, i.e. ~0:01:49
+[INFO] Full campaign suite estimated remaining time: ~109 seconds, i.e. ~0:01:49
+[RESULT] framework=tonic scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=4730 errors=0 seconds=0.100369 ops_per_second=47126.2 p50_us=696.32 p95_us=722.944 p99_us=774.144 min_us=51.207 max_us=1083.05 mean_us=678.194 client_cpu_percent=136.74522296739494 server_cpu_percent=63.44707879854072 payload_mib_s=2948.2638549804688
+[INFO] Run  13/120, current campaign expected remaining time: ~108 seconds, i.e. ~0:01:48
+[INFO] Full campaign suite estimated remaining time: ~108 seconds, i.e. ~0:01:48
+[RESULT] framework=grpc-go scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=5297 errors=0 seconds=0.100811 ops_per_second=52543.7 p50_us=2375.68 p95_us=3645.44 p99_us=4087.81 min_us=44.463 max_us=5435.93 mean_us=2432.47 client_cpu_percent=127.71952725573827 server_cpu_percent=64.74699986033028 payload_mib_s=102.6244140625
+[INFO] Run  14/120, current campaign expected remaining time: ~107 seconds, i.e. ~0:01:47
+[INFO] Full campaign suite estimated remaining time: ~107 seconds, i.e. ~0:01:47
+[RESULT] framework=grpc-go scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=2221 errors=0 seconds=0.101339 ops_per_second=21916.5 p50_us=1572.86 p95_us=2375.68 p99_us=2506.75 min_us=277.122 max_us=2923.57 mean_us=1458.07 client_cpu_percent=86.37070132758558 server_cpu_percent=77.03496933762256 payload_mib_s=1371.1189270019531
+[INFO] Run  15/120, current campaign expected remaining time: ~106 seconds, i.e. ~0:01:46
+[INFO] Full campaign suite estimated remaining time: ~106 seconds, i.e. ~0:01:46
+[RESULT] framework=grpc-go scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=2554 errors=0 seconds=0.100019 ops_per_second=25535.1 p50_us=37.888 p95_us=44.544 p99_us=76.032 min_us=31.79 max_us=151.706 mean_us=39.1405 client_cpu_percent=59.851816338720354 server_cpu_percent=41.950247422120846 payload_mib_s=3.11707763671875
+[INFO] Run  16/120, current campaign expected remaining time: ~105 seconds, i.e. ~0:01:45
+[INFO] Full campaign suite estimated remaining time: ~105 seconds, i.e. ~0:01:45
+[RESULT] framework=brpc scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=12599 errors=0 seconds=0.100177 ops_per_second=125768 p50_us=194.048 p95_us=242.688 p99_us=270.336 min_us=53.721 max_us=44507.7 mean_us=254.238 client_cpu_percent=115.24098123161521 server_cpu_percent=54.77818741624717 payload_mib_s=245.640625
+[INFO] Run  17/120, current campaign expected remaining time: ~104 seconds, i.e. ~0:01:44
+[INFO] Full campaign suite estimated remaining time: ~104 seconds, i.e. ~0:01:44
+[RESULT] framework=grpc-cpp scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=37758 errors=0 seconds=0.100541 ops_per_second=375548 p50_us=317.44 p95_us=602.112 p99_us=888.832 min_us=32.381 max_us=1374.93 mean_us=340.18 client_cpu_percent=496.7039477248098 server_cpu_percent=476.9986053397732 payload_mib_s=733.4921875
+[INFO] Run  18/120, current campaign expected remaining time: ~103 seconds, i.e. ~0:01:43
+[INFO] Full campaign suite estimated remaining time: ~103 seconds, i.e. ~0:01:43
+[RESULT] framework=brpc scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=12656 errors=0 seconds=0.10056 ops_per_second=125855 p50_us=983.04 p95_us=1011.71 p99_us=1024 min_us=95.16 max_us=45756.2 mean_us=1015.67 client_cpu_percent=117.8898026310868 server_cpu_percent=53.25343992369817 payload_mib_s=245.810546875
+[INFO] Run  19/120, current campaign expected remaining time: ~102 seconds, i.e. ~0:01:42
+[INFO] Full campaign suite estimated remaining time: ~102 seconds, i.e. ~0:01:42
+[RESULT] framework=thrift scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=6359 errors=0 seconds=0.100011 ops_per_second=63582.8 p50_us=15.52 p95_us=17.216 p99_us=20.288 min_us=12.573 max_us=244.701 mean_us=15.7185 client_cpu_percent=27.716372393620354 server_cpu_percent=32.922334044109476 payload_mib_s=0.0
+[INFO] Run  20/120, current campaign expected remaining time: ~101 seconds, i.e. ~0:01:41
+[INFO] Full campaign suite estimated remaining time: ~101 seconds, i.e. ~0:01:41
+[RESULT] framework=capnp scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=5185 errors=0 seconds=0.100398 ops_per_second=51644.5 p50_us=616.448 p95_us=696.32 p99_us=714.752 min_us=139.573 max_us=1154.57 mean_us=618.746 client_cpu_percent=108.264922899728 server_cpu_percent=67.49487103433903 payload_mib_s=3230.933380126953
+[INFO] Run  21/120, current campaign expected remaining time: ~100 seconds, i.e. ~0:01:40
+[INFO] Full campaign suite estimated remaining time: ~100 seconds, i.e. ~0:01:40
+[RESULT] framework=capnp scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=13216 errors=0 seconds=0.100129 ops_per_second=131990 p50_us=242.176 p95_us=314.368 p99_us=324.608 min_us=75.873 max_us=497.998 mean_us=242.248 client_cpu_percent=79.52019265827224 server_cpu_percent=54.06686451583167 payload_mib_s=257.79296875
+[INFO] Run  22/120, current campaign expected remaining time: ~99 seconds, i.e. ~0:01:39
+[INFO] Full campaign suite estimated remaining time: ~99 seconds, i.e. ~0:01:39
+[RESULT] framework=grpc-lite scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=13335 errors=0 seconds=0.100172 ops_per_second=133121 p50_us=238.592 p95_us=262.144 p99_us=307.2 min_us=88.537 max_us=467.421 mean_us=240.147 client_cpu_percent=258.4535130144543 server_cpu_percent=54.68536429389851 payload_mib_s=260.001953125
+[INFO] Run  23/120, current campaign expected remaining time: ~98 seconds, i.e. ~0:01:38
+[INFO] Full campaign suite estimated remaining time: ~98 seconds, i.e. ~0:01:38
+[RESULT] framework=thrift scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=12863 errors=0 seconds=0.100034 ops_per_second=128586 p50_us=61.568 p95_us=66.304 p99_us=77.824 min_us=37.19 max_us=153.168 mean_us=62.1801 client_cpu_percent=49.99230515118007 server_cpu_percent=61.064754290725595 payload_mib_s=251.14453125
+[INFO] Run  24/120, current campaign expected remaining time: ~97 seconds, i.e. ~0:01:37
+[INFO] Full campaign suite estimated remaining time: ~97 seconds, i.e. ~0:01:37
+[RESULT] framework=grpc-cpp-callback scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=6480 errors=0 seconds=0.10009 ops_per_second=64741.8 p50_us=112.128 p95_us=239.616 p99_us=454.656 min_us=31.029 max_us=2129.15 mean_us=123.502 client_cpu_percent=124.94849450563301 server_cpu_percent=68.85377942956382 payload_mib_s=126.448828125
+[INFO] Run  25/120, current campaign expected remaining time: ~96 seconds, i.e. ~0:01:36
+[INFO] Full campaign suite estimated remaining time: ~96 seconds, i.e. ~0:01:36
+[RESULT] framework=brpc scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=4742 errors=0 seconds=0.100019 ops_per_second=47411 p50_us=20.672 p95_us=24.384 p99_us=29.568 min_us=17.142 max_us=51.187 mean_us=21.0808 client_cpu_percent=44.24168413503769 server_cpu_percent=32.19316294988078 payload_mib_s=0.0
+[INFO] Run  26/120, current campaign expected remaining time: ~95 seconds, i.e. ~0:01:35
+[INFO] Full campaign suite estimated remaining time: ~95 seconds, i.e. ~0:01:35
+[RESULT] framework=grpc-cpp scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=1953 errors=0 seconds=0.100978 ops_per_second=19340.9 p50_us=1556.48 p95_us=2727.94 p99_us=4259.84 min_us=143.43 max_us=7933.17 mean_us=1652.27 client_cpu_percent=91.43177898640812 server_cpu_percent=76.70754090020047 payload_mib_s=2417.6125
+[INFO] Run  27/120, current campaign expected remaining time: ~94 seconds, i.e. ~0:01:34
+[INFO] Full campaign suite estimated remaining time: ~94 seconds, i.e. ~0:01:34
+[RESULT] framework=brpc scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=4927 errors=0 seconds=0.100364 ops_per_second=49091.4 p50_us=492.544 p95_us=618.496 p99_us=651.264 min_us=75.813 max_us=33042.3 mean_us=651.419 client_cpu_percent=89.12695885552958 server_cpu_percent=63.332525833793895 payload_mib_s=3071.2088012695312
+[INFO] Run  28/120, current campaign expected remaining time: ~93 seconds, i.e. ~0:01:33
+[INFO] Full campaign suite estimated remaining time: ~93 seconds, i.e. ~0:01:33
+[RESULT] framework=capnp scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=196 errors=0 seconds=0.105615 ops_per_second=1855.8 p50_us=18087.9 p95_us=20512.8 p99_us=23724 min_us=1647.3 max_us=23954.4 mean_us=16916.4 client_cpu_percent=132.82731831684066 server_cpu_percent=78.86390362345553 payload_mib_s=3711.6
+[INFO] Run  29/120, current campaign expected remaining time: ~92 seconds, i.e. ~0:01:32
+[INFO] Full campaign suite estimated remaining time: ~92 seconds, i.e. ~0:01:32
+[RESULT] framework=grpc-cpp-callback scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=2539 errors=0 seconds=0.10002 ops_per_second=25385 p50_us=38.528 p95_us=44.928 p99_us=52.608 min_us=33.243 max_us=78.147 mean_us=39.3724 client_cpu_percent=49.28803142014225 server_cpu_percent=50.752470898616956 payload_mib_s=3.0987548828125
+[INFO] Run  30/120, current campaign expected remaining time: ~91 seconds, i.e. ~0:01:31
+[INFO] Full campaign suite estimated remaining time: ~91 seconds, i.e. ~0:01:31
+[RESULT] framework=tonic scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=3054 errors=0 seconds=0.100028 ops_per_second=30531.4 p50_us=32.256 p95_us=35.712 p99_us=43.264 min_us=28.353 max_us=134.945 mean_us=32.7346 client_cpu_percent=58.302188270893765 server_cpu_percent=18.702633915582588 payload_mib_s=0.0
+[INFO] Run  31/120, current campaign expected remaining time: ~90 seconds, i.e. ~0:01:30
+[INFO] Full campaign suite estimated remaining time: ~90 seconds, i.e. ~0:01:30
+[RESULT] framework=grpc-go scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=5431 errors=0 seconds=0.100203 ops_per_second=54199.9 p50_us=519.168 p95_us=1024 p99_us=1417.22 min_us=89.829 max_us=1557.52 mean_us=589.901 client_cpu_percent=131.02757517579886 server_cpu_percent=68.39647084581416 payload_mib_s=105.8591796875
+[INFO] Run  32/120, current campaign expected remaining time: ~89 seconds, i.e. ~0:01:29
+[INFO] Full campaign suite estimated remaining time: ~89 seconds, i.e. ~0:01:29
+[RESULT] framework=grpc-cpp scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=2435 errors=0 seconds=0.100009 ops_per_second=24347.8 p50_us=40.064 p95_us=46.336 p99_us=57.216 min_us=35.647 max_us=108.805 mean_us=41.0499 client_cpu_percent=46.74659237634572 server_cpu_percent=41.502927995886665 payload_mib_s=0.0
+[INFO] Run  33/120, current campaign expected remaining time: ~88 seconds, i.e. ~0:01:28
+[INFO] Full campaign suite estimated remaining time: ~88 seconds, i.e. ~0:01:28
+[RESULT] framework=grpc-cpp scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=6067 errors=0 seconds=0.101927 ops_per_second=59522.8 p50_us=2088.96 p95_us=3424.26 p99_us=3874.82 min_us=516.273 max_us=8630.39 mean_us=2147.13 client_cpu_percent=119.05380765688321 server_cpu_percent=67.62093030029816 payload_mib_s=116.25546875
+[INFO] Run  34/120, current campaign expected remaining time: ~87 seconds, i.e. ~0:01:27
+[INFO] Full campaign suite estimated remaining time: ~87 seconds, i.e. ~0:01:27
+[RESULT] framework=brpc scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=63831 errors=0 seconds=0.100243 ops_per_second=636764 p50_us=196.608 p95_us=228.352 p99_us=276.48 min_us=162.306 max_us=532.664 mean_us=200.706 client_cpu_percent=502.1646981789007 server_cpu_percent=360.7444226096925 payload_mib_s=1243.6796875
+[INFO] Run  35/120, current campaign expected remaining time: ~86 seconds, i.e. ~0:01:26
+[INFO] Full campaign suite estimated remaining time: ~86 seconds, i.e. ~0:01:26
+[RESULT] framework=grpc-go scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=1267 errors=0 seconds=0.101837 ops_per_second=12441.5 p50_us=2277.38 p95_us=4186.11 p99_us=4898.82 min_us=206.509 max_us=5540.02 mean_us=2569.29 client_cpu_percent=80.32366624495964 server_cpu_percent=76.38062861705673 payload_mib_s=1555.1875
+[INFO] Run  36/120, current campaign expected remaining time: ~85 seconds, i.e. ~0:01:25
+[INFO] Full campaign suite estimated remaining time: ~85 seconds, i.e. ~0:01:25
+[RESULT] framework=grpc-go scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=5583 errors=0 seconds=0.100093 ops_per_second=55778.3 p50_us=142.336 p95_us=190.976 p99_us=447.488 min_us=62.668 max_us=539.677 mean_us=143.343 client_cpu_percent=134.8975920425122 server_cpu_percent=69.25709887282576 payload_mib_s=108.9419921875
+[INFO] Run  37/120, current campaign expected remaining time: ~84 seconds, i.e. ~0:01:24
+[INFO] Full campaign suite estimated remaining time: ~84 seconds, i.e. ~0:01:24
+[RESULT] framework=grpc-go scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2481 errors=0 seconds=0.100023 ops_per_second=24804.2 p50_us=38.528 p95_us=52.48 p99_us=73.984 min_us=32.491 max_us=154.141 mean_us=40.2937 client_cpu_percent=59.92582260595615 server_cpu_percent=42.12843232388465 payload_mib_s=48.445703125
+[INFO] Run  38/120, current campaign expected remaining time: ~83 seconds, i.e. ~0:01:23
+[INFO] Full campaign suite estimated remaining time: ~83 seconds, i.e. ~0:01:23
+[RESULT] framework=grpc-cpp-callback scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=6224 errors=0 seconds=0.100996 ops_per_second=61626.4 p50_us=470.016 p95_us=1081.34 p99_us=2236.42 min_us=32.902 max_us=9172.15 mean_us=518.767 client_cpu_percent=131.2858977749628 server_cpu_percent=68.12661830204621 payload_mib_s=120.3640625
+[INFO] Run  39/120, current campaign expected remaining time: ~82 seconds, i.e. ~0:01:22
+[INFO] Full campaign suite estimated remaining time: ~82 seconds, i.e. ~0:01:22
+[RESULT] framework=grpc-cpp scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2410 errors=0 seconds=0.100025 ops_per_second=24093.9 p50_us=40.704 p95_us=45.696 p99_us=59.008 min_us=37.39 max_us=94.618 mean_us=41.4824 client_cpu_percent=48.449257669455356 server_cpu_percent=36.69842271584213 payload_mib_s=47.0583984375
+[INFO] Run  40/120, current campaign expected remaining time: ~81 seconds, i.e. ~0:01:21
+[INFO] Full campaign suite estimated remaining time: ~81 seconds, i.e. ~0:01:21
+[RESULT] framework=tonic scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=23614 errors=0 seconds=0.100595 ops_per_second=234743 p50_us=406.528 p95_us=1605.63 p99_us=1949.7 min_us=30.568 max_us=3008.02 mean_us=544.265 client_cpu_percent=373.12089263831604 server_cpu_percent=211.33155229994784 payload_mib_s=458.482421875
+[INFO] Run  41/120, current campaign expected remaining time: ~80 seconds, i.e. ~0:01:20
+[INFO] Full campaign suite estimated remaining time: ~80 seconds, i.e. ~0:01:20
+[RESULT] framework=grpc-lite scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=13144 errors=0 seconds=0.100568 ops_per_second=130697 p50_us=972.8 p95_us=1028.1 p99_us=1155.07 min_us=244.711 max_us=1532.46 mean_us=977.574 client_cpu_percent=239.86662390331057 server_cpu_percent=52.72783414542796 payload_mib_s=255.267578125
+[INFO] Run  42/120, current campaign expected remaining time: ~79 seconds, i.e. ~0:01:19
+[INFO] Full campaign suite estimated remaining time: ~79 seconds, i.e. ~0:01:19
+[RESULT] framework=grpc-cpp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=5195 errors=0 seconds=0.100123 ops_per_second=51886.4 p50_us=147.456 p95_us=236.032 p99_us=292.864 min_us=47.239 max_us=408.95 mean_us=154.101 client_cpu_percent=101.06231182799803 server_cpu_percent=72.91587328974163 payload_mib_s=101.340625
+[INFO] Run  43/120, current campaign expected remaining time: ~78 seconds, i.e. ~0:01:18
+[INFO] Full campaign suite estimated remaining time: ~78 seconds, i.e. ~0:01:18
+[RESULT] framework=thrift scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=246 errors=0 seconds=0.105387 ops_per_second=2334.25 p50_us=14090.2 p95_us=14286.8 p99_us=14385.2 min_us=4142.18 max_us=14460.9 mean_us=13442.4 client_cpu_percent=129.90006929821735 server_cpu_percent=79.99083827041918 payload_mib_s=4668.5
+[INFO] Run  44/120, current campaign expected remaining time: ~77 seconds, i.e. ~0:01:17
+[INFO] Full campaign suite estimated remaining time: ~77 seconds, i.e. ~0:01:17
+[RESULT] framework=thrift scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=12395 errors=0 seconds=0.100513 ops_per_second=123318 p50_us=1034.24 p95_us=1081.34 p99_us=1118.21 min_us=58.921 max_us=1157.42 mean_us=1036.53 client_cpu_percent=49.7614205655027 server_cpu_percent=51.402341466152336 payload_mib_s=240.85546875
+[INFO] Run  45/120, current campaign expected remaining time: ~76 seconds, i.e. ~0:01:16
+[INFO] Full campaign suite estimated remaining time: ~76 seconds, i.e. ~0:01:16
+[RESULT] framework=grpc-cpp-callback scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=3614 errors=0 seconds=0.100571 ops_per_second=35934.7 p50_us=751.616 p95_us=1839.1 p99_us=4685.82 min_us=46.046 max_us=29709.8 mean_us=889.598 client_cpu_percent=93.65472663643763 server_cpu_percent=76.32895242389056 payload_mib_s=2248.112030029297
+[INFO] Run  46/120, current campaign expected remaining time: ~75 seconds, i.e. ~0:01:15
+[INFO] Full campaign suite estimated remaining time: ~75 seconds, i.e. ~0:01:15
+[RESULT] framework=thrift scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=4264 errors=0 seconds=0.100281 ops_per_second=42520.7 p50_us=749.568 p95_us=788.48 p99_us=813.056 min_us=133.161 max_us=852.346 mean_us=751.736 client_cpu_percent=69.60635782687322 server_cpu_percent=64.85826924480175 payload_mib_s=5315.0875
+[INFO] Run  47/120, current campaign expected remaining time: ~74 seconds, i.e. ~0:01:14
+[INFO] Full campaign suite estimated remaining time: ~74 seconds, i.e. ~0:01:14
+[RESULT] framework=grpc-cpp scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=3599 errors=0 seconds=0.100455 ops_per_second=35826.8 p50_us=858.112 p95_us=1474.56 p99_us=1634.3 min_us=134.113 max_us=2736.42 mean_us=892.375 client_cpu_percent=122.76537327949633 server_cpu_percent=72.84076690061094 payload_mib_s=2241.3616943359375
+[INFO] Run  48/120, current campaign expected remaining time: ~73 seconds, i.e. ~0:01:13
+[INFO] Full campaign suite estimated remaining time: ~73 seconds, i.e. ~0:01:13
+[RESULT] framework=brpc scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=228 errors=0 seconds=0.10823 ops_per_second=2106.63 p50_us=11501.6 p95_us=42467.3 p99_us=52559.9 min_us=945.842 max_us=62551.1 mean_us=14958.9 client_cpu_percent=105.29436522494599 server_cpu_percent=79.22230473624717 payload_mib_s=4213.26
+[INFO] Run  49/120, current campaign expected remaining time: ~72 seconds, i.e. ~0:01:12
+[INFO] Full campaign suite estimated remaining time: ~72 seconds, i.e. ~0:01:12
+[RESULT] framework=thrift scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=5343 errors=0 seconds=0.100312 ops_per_second=53263.8 p50_us=600.064 p95_us=618.496 p99_us=626.688 min_us=84.499 max_us=667.878 mean_us=600.361 client_cpu_percent=47.35435593175259 server_cpu_percent=69.78174288260121 payload_mib_s=3332.2384643554688
+[INFO] Run  50/120, current campaign expected remaining time: ~71 seconds, i.e. ~0:01:11
+[INFO] Full campaign suite estimated remaining time: ~71 seconds, i.e. ~0:01:11
+[RESULT] framework=tonic scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2746 errors=0 seconds=0.100034 ops_per_second=27450.6 p50_us=35.968 p95_us=40.32 p99_us=46.336 min_us=31.94 max_us=97.814 mean_us=36.4102 client_cpu_percent=70.15221482059442 server_cpu_percent=23.400451923211488 payload_mib_s=53.614453125
+[INFO] Run  51/120, current campaign expected remaining time: ~70 seconds, i.e. ~0:01:10
+[INFO] Full campaign suite estimated remaining time: ~70 seconds, i.e. ~0:01:10
+[RESULT] framework=grpc-cpp scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=3218 errors=0 seconds=0.100455 ops_per_second=32034.1 p50_us=974.848 p95_us=1560.58 p99_us=1982.46 min_us=167.716 max_us=3939.76 mean_us=997.908 client_cpu_percent=86.93498874245785 server_cpu_percent=77.30747909577249 payload_mib_s=2004.0864562988281
+[INFO] Run  52/120, current campaign expected remaining time: ~69 seconds, i.e. ~0:01:09
+[INFO] Full campaign suite estimated remaining time: ~69 seconds, i.e. ~0:01:09
+[RESULT] framework=capnp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=13546 errors=0 seconds=0.10004 ops_per_second=135406 p50_us=55.552 p95_us=94.208 p99_us=97.024 min_us=26.269 max_us=116.679 mean_us=59.0467 client_cpu_percent=81.14922463528882 server_cpu_percent=56.428735911424575 payload_mib_s=264.46484375
+[INFO] Run  53/120, current campaign expected remaining time: ~68 seconds, i.e. ~0:01:08
+[INFO] Full campaign suite estimated remaining time: ~68 seconds, i.e. ~0:01:08
+[RESULT] framework=grpc-cpp-callback scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=3681 errors=0 seconds=0.100646 ops_per_second=36573.6 p50_us=837.632 p95_us=1826.82 p99_us=2883.58 min_us=48.952 max_us=15391.6 mean_us=874.093 client_cpu_percent=126.60340912193317 server_cpu_percent=67.95236437907025 payload_mib_s=2288.082275390625
+[INFO] Run  54/120, current campaign expected remaining time: ~67 seconds, i.e. ~0:01:07
+[INFO] Full campaign suite estimated remaining time: ~67 seconds, i.e. ~0:01:07
+[RESULT] framework=grpc-cpp scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=2366 errors=0 seconds=0.100017 ops_per_second=23656 p50_us=40.064 p95_us=52.224 p99_us=74.24 min_us=36.409 max_us=437.524 mean_us=42.2505 client_cpu_percent=47.82392101136461 server_cpu_percent=37.25873964950282 payload_mib_s=2.8876953125
+[INFO] Run  55/120, current campaign expected remaining time: ~66 seconds, i.e. ~0:01:06
+[INFO] Full campaign suite estimated remaining time: ~66 seconds, i.e. ~0:01:06
+[RESULT] framework=capnp scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=5763 errors=0 seconds=0.1 ops_per_second=57629.8 p50_us=17.024 p95_us=19.008 p99_us=22.08 min_us=15.589 max_us=60.724 mean_us=17.3413 client_cpu_percent=35.466840706634756 server_cpu_percent=28.290111038115164 payload_mib_s=0.0
+[INFO] Run  56/120, current campaign expected remaining time: ~65 seconds, i.e. ~0:01:05
+[INFO] Full campaign suite estimated remaining time: ~65 seconds, i.e. ~0:01:05
+[RESULT] framework=grpc-cpp-callback scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=7199 errors=0 seconds=0.101157 ops_per_second=71166.9 p50_us=1765.38 p95_us=3432.45 p99_us=4046.85 min_us=32.722 max_us=26104.6 mean_us=1794.78 client_cpu_percent=136.2767367061662 server_cpu_percent=63.17077642218288 payload_mib_s=138.9978515625
+[INFO] Run  57/120, current campaign expected remaining time: ~64 seconds, i.e. ~0:01:04
+[INFO] Full campaign suite estimated remaining time: ~64 seconds, i.e. ~0:01:04
+[RESULT] framework=brpc scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=12596 errors=0 seconds=0.100536 ops_per_second=125288 p50_us=968.704 p95_us=1011.71 p99_us=1030.14 min_us=96.432 max_us=47581.6 mean_us=1020.03 client_cpu_percent=124.17614890862181 server_cpu_percent=57.411877067187774 payload_mib_s=244.703125
+[INFO] Run  58/120, current campaign expected remaining time: ~63 seconds, i.e. ~0:01:03
+[INFO] Full campaign suite estimated remaining time: ~63 seconds, i.e. ~0:01:03
+[RESULT] framework=grpc-cpp scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=167 errors=0 seconds=0.106041 ops_per_second=1574.86 p50_us=13369.3 p95_us=69992.4 p99_us=86769.7 min_us=2998.43 max_us=89602.2 mean_us=20077.6 client_cpu_percent=107.70238073892342 server_cpu_percent=78.56785043909866 payload_mib_s=3149.72
+[INFO] Run  59/120, current campaign expected remaining time: ~62 seconds, i.e. ~0:01:02
+[INFO] Full campaign suite estimated remaining time: ~62 seconds, i.e. ~0:01:02
+[RESULT] framework=grpc-lite scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=13385 errors=0 seconds=0.100185 ops_per_second=133603 p50_us=237.056 p95_us=263.168 p99_us=312.32 min_us=100.901 max_us=542.061 mean_us=239.274 client_cpu_percent=259.50375716059204 server_cpu_percent=54.8650168508766 payload_mib_s=260.943359375
+[INFO] Run  60/120, current campaign expected remaining time: ~61 seconds, i.e. ~0:01:01
+[INFO] Full campaign suite estimated remaining time: ~61 seconds, i.e. ~0:01:01
+[RESULT] framework=grpc-cpp-callback scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=2373 errors=0 seconds=0.101026 ops_per_second=23488.9 p50_us=1216.51 p95_us=3325.95 p99_us=4505.6 min_us=61.366 max_us=14742.4 mean_us=1360.69 client_cpu_percent=108.16784630277655 server_cpu_percent=76.7256676853289 payload_mib_s=2936.1125
+[INFO] Run  61/120, current campaign expected remaining time: ~60 seconds, i.e. ~0:01:00
+[INFO] Full campaign suite estimated remaining time: ~60 seconds, i.e. ~0:01:00
+[RESULT] framework=grpc-lite scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=13226 errors=0 seconds=0.100644 ops_per_second=131414 p50_us=968.704 p95_us=1015.81 p99_us=1146.88 min_us=333.448 max_us=1722.17 mean_us=972.261 client_cpu_percent=239.9052398767392 server_cpu_percent=48.496158000240555 payload_mib_s=256.66796875
+[INFO] Run  62/120, current campaign expected remaining time: ~59 seconds, i.e. ~0:00:59
+[INFO] Full campaign suite estimated remaining time: ~59 seconds, i.e. ~0:00:59
+[RESULT] framework=tonic scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=25721 errors=0 seconds=0.10068 ops_per_second=255474 p50_us=485.376 p95_us=811.008 p99_us=1011.71 min_us=34.655 max_us=4914.89 mean_us=500.008 client_cpu_percent=457.43495472649556 server_cpu_percent=209.06717333138002 payload_mib_s=498.97265625
+[INFO] Run  63/120, current campaign expected remaining time: ~58 seconds, i.e. ~0:00:58
+[INFO] Full campaign suite estimated remaining time: ~58 seconds, i.e. ~0:00:58
+[RESULT] framework=brpc scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=4807 errors=0 seconds=0.100009 ops_per_second=48065.5 p50_us=20.48 p95_us=23.296 p99_us=27.008 min_us=17.613 max_us=64.913 mean_us=20.7929 client_cpu_percent=45.402537489187964 server_cpu_percent=32.1645341994044 payload_mib_s=5.86737060546875
+[INFO] Run  64/120, current campaign expected remaining time: ~57 seconds, i.e. ~0:00:57
+[INFO] Full campaign suite estimated remaining time: ~57 seconds, i.e. ~0:00:57
+[RESULT] framework=tonic scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=3035 errors=0 seconds=0.100018 ops_per_second=30344.5 p50_us=32.512 p95_us=34.944 p99_us=41.344 min_us=30.046 max_us=130.807 mean_us=32.9369 client_cpu_percent=58.62345739847748 server_cpu_percent=23.368434701585176 payload_mib_s=3.70416259765625
+[INFO] Run  65/120, current campaign expected remaining time: ~56 seconds, i.e. ~0:00:56
+[INFO] Full campaign suite estimated remaining time: ~56 seconds, i.e. ~0:00:56
+[RESULT] framework=brpc scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=4718 errors=0 seconds=0.100004 ops_per_second=47178.1 p50_us=20.864 p95_us=24.064 p99_us=29.696 min_us=18.234 max_us=48.771 mean_us=21.1849 client_cpu_percent=45.463421887659074 server_cpu_percent=32.168599334237925 payload_mib_s=92.1447265625
+[INFO] Run  66/120, current campaign expected remaining time: ~55 seconds, i.e. ~0:00:55
+[INFO] Full campaign suite estimated remaining time: ~55 seconds, i.e. ~0:00:55
+[RESULT] framework=thrift scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=6797 errors=0 seconds=0.100014 ops_per_second=67960.6 p50_us=14.432 p95_us=16 p99_us=19.072 min_us=12.974 max_us=68.168 mean_us=14.7059 client_cpu_percent=26.67787051402643 server_cpu_percent=32.917065077590124 payload_mib_s=8.2959716796875
+[INFO] Run  67/120, current campaign expected remaining time: ~54 seconds, i.e. ~0:00:54
+[INFO] Full campaign suite estimated remaining time: ~54 seconds, i.e. ~0:00:54
+[RESULT] framework=capnp scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=5419 errors=0 seconds=0.100254 ops_per_second=54052.8 p50_us=591.872 p95_us=806.912 p99_us=847.872 min_us=90.009 max_us=1126.49 mean_us=591.516 client_cpu_percent=64.22232961125461 server_cpu_percent=66.78278145212828 payload_mib_s=3381.59912109375
+[INFO] Run  68/120, current campaign expected remaining time: ~53 seconds, i.e. ~0:00:53
+[INFO] Full campaign suite estimated remaining time: ~53 seconds, i.e. ~0:00:53
+[RESULT] framework=thrift scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=6825 errors=0 seconds=0.100005 ops_per_second=68246.9 p50_us=14.336 p95_us=17.216 p99_us=19.136 min_us=12.674 max_us=62.308 mean_us=14.6428 client_cpu_percent=27.82409567701708 server_cpu_percent=32.885114852876484 payload_mib_s=133.2947265625
+[INFO] Run  69/120, current campaign expected remaining time: ~52 seconds, i.e. ~0:00:52
+[INFO] Full campaign suite estimated remaining time: ~52 seconds, i.e. ~0:00:52
+[RESULT] framework=grpc-lite scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=38941 errors=0 seconds=0.100586 ops_per_second=387141 p50_us=239.616 p95_us=604.16 p99_us=3194.88 min_us=25.688 max_us=5371.7 mean_us=329.965 client_cpu_percent=501.50626317002025 server_cpu_percent=151.37255135524842 payload_mib_s=756.134765625
+[INFO] Run  70/120, current campaign expected remaining time: ~51 seconds, i.e. ~0:00:51
+[INFO] Full campaign suite estimated remaining time: ~51 seconds, i.e. ~0:00:51
+[RESULT] framework=grpc-go scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2553 errors=0 seconds=0.100034 ops_per_second=25521.2 p50_us=37.888 p95_us=43.904 p99_us=71.424 min_us=32.131 max_us=164.039 mean_us=39.1626 client_cpu_percent=59.2999752556424 server_cpu_percent=42.12443781183192 payload_mib_s=49.84609375
+[INFO] Run  71/120, current campaign expected remaining time: ~50 seconds, i.e. ~0:00:50
+[INFO] Full campaign suite estimated remaining time: ~50 seconds, i.e. ~0:00:50
+[RESULT] framework=grpc-cpp scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=20687 errors=0 seconds=0.100671 ops_per_second=205492 p50_us=550.912 p95_us=1110.02 p99_us=2269.18 min_us=38.713 max_us=6148.97 mean_us=620.997 client_cpu_percent=362.45315289356955 server_cpu_percent=256.37828961772044 payload_mib_s=401.3515625
+[INFO] Run  72/120, current campaign expected remaining time: ~49 seconds, i.e. ~0:00:49
+[INFO] Full campaign suite estimated remaining time: ~49 seconds, i.e. ~0:00:49
+[RESULT] framework=grpc-cpp-callback scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2482 errors=0 seconds=0.100043 ops_per_second=24809.3 p50_us=39.424 p95_us=47.104 p99_us=57.6 min_us=33.162 max_us=131.328 mean_us=40.2864 client_cpu_percent=50.43169621587129 server_cpu_percent=51.35705700666517 payload_mib_s=48.4556640625
+[INFO] Run  73/120, current campaign expected remaining time: ~48 seconds, i.e. ~0:00:48
+[INFO] Full campaign suite estimated remaining time: ~48 seconds, i.e. ~0:00:48
+[RESULT] framework=thrift scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=12758 errors=0 seconds=0.100146 ops_per_second=127394 p50_us=249.344 p95_us=261.632 p99_us=304.128 min_us=40.326 max_us=339.44 mean_us=251.032 client_cpu_percent=51.27468268621078 server_cpu_percent=60.60396360700747 payload_mib_s=248.81640625
+[INFO] Run  74/120, current campaign expected remaining time: ~47 seconds, i.e. ~0:00:47
+[INFO] Full campaign suite estimated remaining time: ~47 seconds, i.e. ~0:00:47
+[RESULT] framework=tonic scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=6896 errors=0 seconds=0.100981 ops_per_second=68290.2 p50_us=1908.74 p95_us=1949.7 p99_us=2002.94 min_us=50.686 max_us=2133.57 mean_us=1871.41 client_cpu_percent=170.40986690814984 server_cpu_percent=52.4179247424665 payload_mib_s=133.379296875
+[INFO] Run  75/120, current campaign expected remaining time: ~46 seconds, i.e. ~0:00:46
+[INFO] Full campaign suite estimated remaining time: ~46 seconds, i.e. ~0:00:46
+[RESULT] framework=thrift scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=83010 errors=0 seconds=0.100187 ops_per_second=828549 p50_us=128.256 p95_us=144.896 p99_us=274.432 min_us=34.986 max_us=6170.8 mean_us=154.211 client_cpu_percent=322.77511692101547 server_cpu_percent=370.9897721285585 payload_mib_s=1618.259765625
+[INFO] Run  76/120, current campaign expected remaining time: ~45 seconds, i.e. ~0:00:45
+[INFO] Full campaign suite estimated remaining time: ~45 seconds, i.e. ~0:00:45
+[RESULT] framework=grpc-cpp-callback scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=167 errors=0 seconds=0.109126 ops_per_second=1530.34 p50_us=8060.93 p95_us=109314 p99_us=119800 min_us=551.95 max_us=122534 mean_us=20999.9 client_cpu_percent=92.4022228361157 server_cpu_percent=79.3973199163027 payload_mib_s=3060.68
+[INFO] Run  77/120, current campaign expected remaining time: ~44 seconds, i.e. ~0:00:44
+[INFO] Full campaign suite estimated remaining time: ~44 seconds, i.e. ~0:00:44
+[RESULT] framework=grpc-go scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=17866 errors=0 seconds=0.100557 ops_per_second=177670 p50_us=600.064 p95_us=1630.21 p99_us=2277.38 min_us=32.01 max_us=3611.88 mean_us=719.347 client_cpu_percent=319.14305043086995 server_cpu_percent=250.52504794425627 payload_mib_s=347.01171875
+[INFO] Run  78/120, current campaign expected remaining time: ~43 seconds, i.e. ~0:00:43
+[INFO] Full campaign suite estimated remaining time: ~43 seconds, i.e. ~0:00:43
+[RESULT] framework=tonic scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=223 errors=0 seconds=0.105445 ops_per_second=2114.84 p50_us=14483.5 p95_us=21626.9 p99_us=22937.6 min_us=4369.86 max_us=23217 mean_us=14912.8 client_cpu_percent=163.8696534883958 server_cpu_percent=70.45162610965443 payload_mib_s=4229.68
+[INFO] Run  79/120, current campaign expected remaining time: ~42 seconds, i.e. ~0:00:42
+[INFO] Full campaign suite estimated remaining time: ~42 seconds, i.e. ~0:00:42
+[RESULT] framework=brpc scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=4635 errors=0 seconds=0.100012 ops_per_second=46344.2 p50_us=20.992 p95_us=25.536 p99_us=32.192 min_us=17.843 max_us=80.141 mean_us=21.5659 client_cpu_percent=44.65229759560506 server_cpu_percent=32.2153367382548 payload_mib_s=90.516015625
+[INFO] Run  80/120, current campaign expected remaining time: ~41 seconds, i.e. ~0:00:41
+[INFO] Full campaign suite estimated remaining time: ~41 seconds, i.e. ~0:00:41
+[RESULT] framework=capnp scenario=latency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=5483 errors=0 seconds=0.100012 ops_per_second=54823.2 p50_us=17.728 p95_us=20.992 p99_us=23.616 min_us=16.611 max_us=60.975 mean_us=18.2295 client_cpu_percent=35.455278290998294 server_cpu_percent=28.317781471186702 payload_mib_s=107.0765625
+[INFO] Run  81/120, current campaign expected remaining time: ~40 seconds, i.e. ~0:00:40
+[INFO] Full campaign suite estimated remaining time: ~40 seconds, i.e. ~0:00:40
+[RESULT] framework=capnp scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=77638 errors=0 seconds=0.100252 ops_per_second=774426 p50_us=145.408 p95_us=309.248 p99_us=591.872 min_us=17.533 max_us=4235.68 mean_us=165.033 client_cpu_percent=430.86687798847333 server_cpu_percent=275.84722695996203 payload_mib_s=1512.55078125
+[INFO] Run  82/120, current campaign expected remaining time: ~39 seconds, i.e. ~0:00:39
+[INFO] Full campaign suite estimated remaining time: ~39 seconds, i.e. ~0:00:39
+[RESULT] framework=grpc-cpp scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=5821 errors=0 seconds=0.100428 ops_per_second=57962.2 p50_us=536.576 p95_us=870.4 p99_us=1013.76 min_us=186.05 max_us=1704.07 mean_us=551.606 client_cpu_percent=113.73015686844849 server_cpu_percent=72.44708886649136 payload_mib_s=113.207421875
+[INFO] Run  83/120, current campaign expected remaining time: ~38 seconds, i.e. ~0:00:38
+[INFO] Full campaign suite estimated remaining time: ~38 seconds, i.e. ~0:00:38
+[RESULT] framework=capnp scenario=latency request_bytes=64 response_bytes=64 concurrency=1 server_cores=1 rep=1 completed=5915 errors=0 seconds=0.10001 ops_per_second=59144 p50_us=16.768 p95_us=17.984 p99_us=20.416 min_us=15.169 max_us=53.02 mean_us=16.8985 client_cpu_percent=35.36488005384083 server_cpu_percent=28.273055339513963 payload_mib_s=7.2197265625
+[INFO] Run  84/120, current campaign expected remaining time: ~37 seconds, i.e. ~0:00:37
+[INFO] Full campaign suite estimated remaining time: ~37 seconds, i.e. ~0:00:37
+[RESULT] framework=grpc-lite scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=41923 errors=0 seconds=0.100567 ops_per_second=416866 p50_us=280.576 p95_us=638.976 p99_us=878.592 min_us=23.163 max_us=2566.11 mean_us=306.436 client_cpu_percent=511.87241056895846 server_cpu_percent=213.12135467628997 payload_mib_s=814.19140625
+[INFO] Run  85/120, current campaign expected remaining time: ~36 seconds, i.e. ~0:00:36
+[INFO] Full campaign suite estimated remaining time: ~36 seconds, i.e. ~0:00:36
+[RESULT] framework=tonic scenario=payload request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=6852 errors=0 seconds=0.100241 ops_per_second=68355.4 p50_us=480.256 p95_us=494.592 p99_us=509.952 min_us=35.838 max_us=712.763 mean_us=467.699 client_cpu_percent=173.7706415134955 server_cpu_percent=59.210075844776924 payload_mib_s=133.506640625
+[INFO] Run  86/120, current campaign expected remaining time: ~35 seconds, i.e. ~0:00:35
+[INFO] Full campaign suite estimated remaining time: ~35 seconds, i.e. ~0:00:35
+[RESULT] framework=grpc-cpp-callback scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=40699 errors=0 seconds=0.10084 ops_per_second=403598 p50_us=283.648 p95_us=671.744 p99_us=1017.86 min_us=28.734 max_us=1881.77 mean_us=316.475 client_cpu_percent=490.67834982528984 server_cpu_percent=428.73811377011305 payload_mib_s=788.27734375
+[INFO] Run  87/120, current campaign expected remaining time: ~34 seconds, i.e. ~0:00:34
+[INFO] Full campaign suite estimated remaining time: ~34 seconds, i.e. ~0:00:34
+[RESULT] framework=thrift scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=7615 errors=0 seconds=0.100201 ops_per_second=75997 p50_us=417.792 p95_us=440.32 p99_us=458.752 min_us=41.488 max_us=576.496 mean_us=420.579 client_cpu_percent=86.69176706912049 server_cpu_percent=64.96928622109547 payload_mib_s=4754.450988769531
+[INFO] Run  88/120, current campaign expected remaining time: ~33 seconds, i.e. ~0:00:33
+[INFO] Full campaign suite estimated remaining time: ~33 seconds, i.e. ~0:00:33
+[RESULT] framework=grpc-cpp-callback scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=7185 errors=0 seconds=0.101558 ops_per_second=70747.9 p50_us=1785.86 p95_us=3473.41 p99_us=4030.46 min_us=33.693 max_us=23924.6 mean_us=1805.97 client_cpu_percent=137.1911888887063 server_cpu_percent=61.943623568401385 payload_mib_s=138.1794921875
+[INFO] Run  89/120, current campaign expected remaining time: ~32 seconds, i.e. ~0:00:32
+[INFO] Full campaign suite estimated remaining time: ~32 seconds, i.e. ~0:00:32
+[RESULT] framework=grpc-cpp-callback scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2424 errors=0 seconds=0.100008 ops_per_second=24238.2 p50_us=40.32 p95_us=49.28 p99_us=63.872 min_us=33.884 max_us=124.013 mean_us=41.2358 client_cpu_percent=49.30964281507515 server_cpu_percent=46.687663625846994 payload_mib_s=47.340234375
+[INFO] Run  90/120, current campaign expected remaining time: ~31 seconds, i.e. ~0:00:31
+[INFO] Full campaign suite estimated remaining time: ~31 seconds, i.e. ~0:00:31
+[RESULT] framework=grpc-cpp-callback scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=2582 errors=0 seconds=0.100037 ops_per_second=25810.5 p50_us=37.504 p95_us=44.8 p99_us=57.216 min_us=32.902 max_us=105.088 mean_us=38.7231 client_cpu_percent=50.44273555273994 server_cpu_percent=46.039516221333734 payload_mib_s=0.0
+[INFO] Run  91/120, current campaign expected remaining time: ~30 seconds, i.e. ~0:00:30
+[INFO] Full campaign suite estimated remaining time: ~30 seconds, i.e. ~0:00:30
+[RESULT] framework=grpc-lite scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=8 server_cores=1 rep=1 completed=12296 errors=0 seconds=0.100055 ops_per_second=122892 p50_us=64.64 p95_us=71.168 p99_us=86.272 min_us=34.054 max_us=298.292 mean_us=65.0632 client_cpu_percent=240.00199727252055 server_cpu_percent=59.979045275012254 payload_mib_s=240.0234375
+[INFO] Run  92/120, current campaign expected remaining time: ~29 seconds, i.e. ~0:00:29
+[INFO] Full campaign suite estimated remaining time: ~29 seconds, i.e. ~0:00:29
+[RESULT] framework=brpc scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=6458 errors=0 seconds=0.100286 ops_per_second=64395.6 p50_us=418.816 p95_us=464.896 p99_us=591.872 min_us=79.791 max_us=49984.9 mean_us=496.287 client_cpu_percent=117.8816740200595 server_cpu_percent=68.08459860232198 payload_mib_s=4028.6553955078125
+[INFO] Run  93/120, current campaign expected remaining time: ~28 seconds, i.e. ~0:00:28
+[INFO] Full campaign suite estimated remaining time: ~28 seconds, i.e. ~0:00:28
+[RESULT] framework=brpc scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=12570 errors=0 seconds=0.100172 ops_per_second=125484 p50_us=217.6 p95_us=243.712 p99_us=257.536 min_us=58.27 max_us=37274 mean_us=254.821 client_cpu_percent=117.13321786360673 server_cpu_percent=54.62262762313256 payload_mib_s=245.0859375
+[INFO] Run  94/120, current campaign expected remaining time: ~27 seconds, i.e. ~0:00:27
+[INFO] Full campaign suite estimated remaining time: ~27 seconds, i.e. ~0:00:27
+[RESULT] framework=capnp scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=3279 errors=0 seconds=0.10051 ops_per_second=32623.5 p50_us=978.944 p95_us=1200.13 p99_us=1224.7 min_us=150.594 max_us=1308.67 mean_us=979.711 client_cpu_percent=72.24956476402208 server_cpu_percent=65.7563448935967 payload_mib_s=4077.9375
+[INFO] Run  95/120, current campaign expected remaining time: ~26 seconds, i.e. ~0:00:26
+[INFO] Full campaign suite estimated remaining time: ~26 seconds, i.e. ~0:00:26
+[RESULT] framework=capnp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=12547 errors=0 seconds=0.100494 ops_per_second=124853 p50_us=1015.81 p95_us=1093.63 p99_us=1392.64 min_us=672.948 max_us=2308.04 mean_us=1023.56 client_cpu_percent=79.03976021196733 server_cpu_percent=45.39218448105326 payload_mib_s=243.853515625
+[INFO] Run  96/120, current campaign expected remaining time: ~25 seconds, i.e. ~0:00:25
+[INFO] Full campaign suite estimated remaining time: ~25 seconds, i.e. ~0:00:25
+[RESULT] framework=capnp scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=12972 errors=0 seconds=0.100506 ops_per_second=129067 p50_us=989.184 p95_us=1069.06 p99_us=1114.11 min_us=100.119 max_us=1460.16 mean_us=990.076 client_cpu_percent=74.06806302493187 server_cpu_percent=39.82004065703465 payload_mib_s=252.083984375
+[INFO] Run  97/120, current campaign expected remaining time: ~24 seconds, i.e. ~0:00:24
+[INFO] Full campaign suite estimated remaining time: ~24 seconds, i.e. ~0:00:24
+[RESULT] framework=grpc-lite scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=146 errors=0 seconds=0.107125 ops_per_second=1362.89 p50_us=24313.9 p95_us=29491.2 p99_us=31129.6 min_us=9868.59 max_us=31325.4 mean_us=23221.6 client_cpu_percent=186.3688663999207 server_cpu_percent=69.29453190378922 payload_mib_s=2725.78
+[INFO] Run  98/120, current campaign expected remaining time: ~23 seconds, i.e. ~0:00:23
+[INFO] Full campaign suite estimated remaining time: ~23 seconds, i.e. ~0:00:23
+[RESULT] framework=capnp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=5714 errors=0 seconds=0.100004 ops_per_second=57137.7 p50_us=16.896 p95_us=20.352 p99_us=23.552 min_us=15.028 max_us=668.419 mean_us=17.4915 client_cpu_percent=35.48421979513166 server_cpu_percent=28.28817862306724 payload_mib_s=111.5970703125
+[INFO] Run  99/120, current campaign expected remaining time: ~22 seconds, i.e. ~0:00:22
+[INFO] Full campaign suite estimated remaining time: ~22 seconds, i.e. ~0:00:22
+[RESULT] framework=thrift scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=12786 errors=0 seconds=0.100473 ops_per_second=127258 p50_us=1003.52 p95_us=1034.24 p99_us=1052.67 min_us=83.447 max_us=1256.5 mean_us=1004.48 client_cpu_percent=55.17181520122383 server_cpu_percent=55.88107499929594 payload_mib_s=248.55078125
+[INFO] Run  100/120, current campaign expected remaining time: ~21 seconds, i.e. ~0:00:21
+[INFO] Full campaign suite estimated remaining time: ~21 seconds, i.e. ~0:00:21
+[RESULT] framework=thrift scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=12781 errors=0 seconds=0.100135 ops_per_second=127637 p50_us=248.32 p95_us=269.312 p99_us=301.056 min_us=60.704 max_us=457.071 mean_us=250.515 client_cpu_percent=51.466229037501755 server_cpu_percent=60.578108531549056 payload_mib_s=249.291015625
+[INFO] Run  101/120, current campaign expected remaining time: ~20 seconds, i.e. ~0:00:20
+[INFO] Full campaign suite estimated remaining time: ~20 seconds, i.e. ~0:00:20
+[RESULT] framework=thrift scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=48010 errors=0 seconds=0.100208 ops_per_second=479102 p50_us=264.192 p95_us=279.552 p99_us=329.728 min_us=44.143 max_us=566.968 mean_us=266.799 client_cpu_percent=158.3711954614059 server_cpu_percent=185.55790224577345 payload_mib_s=935.74609375
+[INFO] Run  102/120, current campaign expected remaining time: ~19 seconds, i.e. ~0:00:19
+[INFO] Full campaign suite estimated remaining time: ~19 seconds, i.e. ~0:00:19
+[RESULT] framework=grpc-lite scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=4739 errors=0 seconds=0.100302 ops_per_second=47247.2 p50_us=665.6 p95_us=839.68 p99_us=925.696 min_us=194.507 max_us=1112.61 mean_us=676.717 client_cpu_percent=175.38729286894724 server_cpu_percent=63.832574237526664 payload_mib_s=2955.833740234375
+[INFO] Run  103/120, current campaign expected remaining time: ~18 seconds, i.e. ~0:00:18
+[INFO] Full campaign suite estimated remaining time: ~18 seconds, i.e. ~0:00:18
+[RESULT] framework=grpc-cpp-callback scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=23572 errors=0 seconds=0.100538 ops_per_second=234459 p50_us=384 p95_us=1949.7 p99_us=3874.82 min_us=28.735 max_us=5788.18 mean_us=544.74 client_cpu_percent=393.37881781693864 server_cpu_percent=235.08460143839537 payload_mib_s=457.927734375
+[INFO] Run  104/120, current campaign expected remaining time: ~17 seconds, i.e. ~0:00:17
+[INFO] Full campaign suite estimated remaining time: ~17 seconds, i.e. ~0:00:17
+[RESULT] framework=tonic scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=2830 errors=0 seconds=0.100561 ops_per_second=28142 p50_us=1171.46 p95_us=1216.51 p99_us=1265.66 min_us=71.715 max_us=1456.16 mean_us=1135.69 client_cpu_percent=144.98003634331528 server_cpu_percent=63.3053205251745 payload_mib_s=3517.75
+[INFO] Run  105/120, current campaign expected remaining time: ~16 seconds, i.e. ~0:00:16
+[INFO] Full campaign suite estimated remaining time: ~16 seconds, i.e. ~0:00:16
+[RESULT] framework=grpc-go scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=5321 errors=0 seconds=0.101516 ops_per_second=52415.2 p50_us=2359.3 p95_us=3661.82 p99_us=4079.62 min_us=187.343 max_us=5600.16 mean_us=2438.57 client_cpu_percent=128.35661874213625 server_cpu_percent=65.05925230937017 payload_mib_s=102.3734375
+[INFO] Run  106/120, current campaign expected remaining time: ~15 seconds, i.e. ~0:00:15
+[INFO] Full campaign suite estimated remaining time: ~15 seconds, i.e. ~0:00:15
+[RESULT] framework=grpc-lite scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=3314 errors=0 seconds=0.100023 ops_per_second=33132.3 p50_us=29.696 p95_us=33.664 p99_us=39.808 min_us=25.568 max_us=94.478 mean_us=30.1668 client_cpu_percent=61.1916514993789 server_cpu_percent=14.045628084234526 payload_mib_s=0.0
+[INFO] Run  107/120, current campaign expected remaining time: ~14 seconds, i.e. ~0:00:14
+[INFO] Full campaign suite estimated remaining time: ~14 seconds, i.e. ~0:00:14
+[RESULT] framework=grpc-lite scenario=asymmetric request_bytes=65536 response_bytes=64 concurrency=32 server_cores=1 rep=1 completed=4384 errors=0 seconds=0.100756 ops_per_second=43511.2 p50_us=737.28 p95_us=819.2 p99_us=1017.86 min_us=599.279 max_us=1080.91 mean_us=734.644 client_cpu_percent=179.13505485931833 server_cpu_percent=59.1682473581395 payload_mib_s=2722.105712890625
+[INFO] Run  108/120, current campaign expected remaining time: ~13 seconds, i.e. ~0:00:13
+[INFO] Full campaign suite estimated remaining time: ~13 seconds, i.e. ~0:00:13
+[RESULT] framework=grpc-lite scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=3241 errors=0 seconds=0.100006 ops_per_second=32408 p50_us=30.208 p95_us=34.56 p99_us=43.136 min_us=26.851 max_us=93.336 mean_us=30.8405 client_cpu_percent=62.831788053958135 server_cpu_percent=14.00640254438822 payload_mib_s=63.296875
+[INFO] Run  109/120, current campaign expected remaining time: ~12 seconds, i.e. ~0:00:12
+[INFO] Full campaign suite estimated remaining time: ~12 seconds, i.e. ~0:00:12
+[RESULT] framework=grpc-go scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=8 rep=1 completed=27951 errors=0 seconds=0.100661 ops_per_second=277674 p50_us=361.472 p95_us=1224.7 p99_us=1871.87 min_us=32.992 max_us=3829 mean_us=460.325 client_cpu_percent=420.94482818655916 server_cpu_percent=455.1944502671854 payload_mib_s=542.33203125
+[INFO] Run  110/120, current campaign expected remaining time: ~11 seconds, i.e. ~0:00:11
+[INFO] Full campaign suite estimated remaining time: ~11 seconds, i.e. ~0:00:11
+[RESULT] framework=grpc-go scenario=latency request_bytes=0 response_bytes=0 concurrency=1 server_cores=1 rep=1 completed=2594 errors=0 seconds=0.100013 ops_per_second=25936.6 p50_us=37.632 p95_us=42.496 p99_us=68.608 min_us=31.9 max_us=133.011 mean_us=38.5352 client_cpu_percent=59.89969900355614 server_cpu_percent=42.130141531105686 payload_mib_s=0.0
+[INFO] Run  111/120, current campaign expected remaining time: ~10 seconds, i.e. ~0:00:10
+[INFO] Full campaign suite estimated remaining time: ~10 seconds, i.e. ~0:00:10
+[RESULT] framework=grpc-go scenario=payload request_bytes=1048576 response_bytes=1048576 concurrency=32 server_cores=1 rep=1 completed=182 errors=0 seconds=0.10701 ops_per_second=1700.78 p50_us=13500.4 p95_us=48496.6 p99_us=101712 min_us=3988.1 max_us=102813 mean_us=18628.5 client_cpu_percent=207.36455601974308 server_cpu_percent=76.41455015186425 payload_mib_s=3401.56
+[INFO] Run  112/120, current campaign expected remaining time: ~9 seconds, i.e. ~0:00:09
+[INFO] Full campaign suite estimated remaining time: ~9 seconds, i.e. ~0:00:09
+[RESULT] framework=grpc-go scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=5419 errors=0 seconds=0.100937 ops_per_second=53686.8 p50_us=523.264 p95_us=1040.38 p99_us=1421.31 min_us=97.514 max_us=1564.49 mean_us=595.565 client_cpu_percent=131.44127567474737 server_cpu_percent=68.34248330524028 payload_mib_s=104.85703125
+[INFO] Run  113/120, current campaign expected remaining time: ~8 seconds, i.e. ~0:00:08
+[INFO] Full campaign suite estimated remaining time: ~8 seconds, i.e. ~0:00:08
+[RESULT] framework=tonic scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=4237 errors=0 seconds=0.100445 ops_per_second=42182.1 p50_us=776.192 p95_us=841.728 p99_us=905.216 min_us=51.447 max_us=1061.22 mean_us=757.859 client_cpu_percent=164.21009017880007 server_cpu_percent=63.7454459939219 payload_mib_s=2638.955841064453
+[INFO] Run  114/120, current campaign expected remaining time: ~7 seconds, i.e. ~0:00:07
+[INFO] Full campaign suite estimated remaining time: ~7 seconds, i.e. ~0:00:07
+[RESULT] framework=grpc-lite scenario=payload request_bytes=65536 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=2181 errors=0 seconds=0.100344 ops_per_second=21735.2 p50_us=1486.85 p95_us=1581.06 p99_us=1617.92 min_us=905.216 max_us=2118.66 mean_us=1470.55 client_cpu_percent=134.81686206455407 server_cpu_percent=67.99660163643108 payload_mib_s=2716.9
+[INFO] Run  115/120, current campaign expected remaining time: ~6 seconds, i.e. ~0:00:06
+[INFO] Full campaign suite estimated remaining time: ~6 seconds, i.e. ~0:00:06
+[RESULT] framework=grpc-cpp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=32 server_cores=1 rep=1 completed=5609 errors=0 seconds=0.100258 ops_per_second=55945.6 p50_us=542.72 p95_us=888.832 p99_us=1114.11 min_us=172.154 max_us=3827.66 mean_us=571.458 client_cpu_percent=119.0906151452208 server_cpu_percent=67.57272166387453 payload_mib_s=109.26875
+[INFO] Run  116/120, current campaign expected remaining time: ~5 seconds, i.e. ~0:00:05
+[INFO] Full campaign suite estimated remaining time: ~5 seconds, i.e. ~0:00:05
+[RESULT] framework=brpc scenario=multicore request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=4 rep=1 completed=43970 errors=0 seconds=0.100243 ops_per_second=438633 p50_us=287.744 p95_us=318.464 p99_us=360.448 min_us=219.544 max_us=571.577 mean_us=291.392 client_cpu_percent=373.2260974112905 server_cpu_percent=237.10586002098282 payload_mib_s=856.705078125
+[INFO] Run  117/120, current campaign expected remaining time: ~4 seconds, i.e. ~0:00:04
+[INFO] Full campaign suite estimated remaining time: ~4 seconds, i.e. ~0:00:04
+[RESULT] framework=grpc-cpp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=128 server_cores=1 rep=1 completed=5977 errors=0 seconds=0.101356 ops_per_second=58970.6 p50_us=2105.34 p95_us=3448.83 p99_us=3891.2 min_us=210.015 max_us=7800.23 mean_us=2167.42 client_cpu_percent=116.60710510418453 server_cpu_percent=65.85498921213059 payload_mib_s=115.176953125
+[INFO] Run  118/120, current campaign expected remaining time: ~3 seconds, i.e. ~0:00:03
+[INFO] Full campaign suite estimated remaining time: ~3 seconds, i.e. ~0:00:03
+[RESULT] framework=grpc-go scenario=asymmetric request_bytes=64 response_bytes=65536 concurrency=32 server_cores=1 rep=1 completed=1890 errors=0 seconds=0.10109 ops_per_second=18696.2 p50_us=1593.34 p95_us=2867.2 p99_us=3235.84 min_us=649.554 max_us=3951.22 mean_us=1709.78 client_cpu_percent=97.88947983324218 server_cpu_percent=72.35329040198715 payload_mib_s=1169.6536254882812
+[INFO] Run  119/120, current campaign expected remaining time: ~2 seconds, i.e. ~0:00:02
+[INFO] Full campaign suite estimated remaining time: ~2 seconds, i.e. ~0:00:02
+[RESULT] framework=grpc-cpp scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2346 errors=0 seconds=0.100009 ops_per_second=23457.8 p50_us=40.32 p95_us=47.488 p99_us=58.624 min_us=37.25 max_us=3156.47 mean_us=42.6062 client_cpu_percent=47.13915350241742 server_cpu_percent=37.445460035680824 payload_mib_s=45.816015625
+[INFO] Run  120/120, current campaign expected remaining time: ~1 seconds, i.e. ~0:00:01
+[INFO] Full campaign suite estimated remaining time: ~1 seconds, i.e. ~0:00:01
+[RESULT] framework=tonic scenario=concurrency request_bytes=1024 response_bytes=1024 concurrency=1 server_cores=1 rep=1 completed=2709 errors=0 seconds=0.10001 ops_per_second=27087.4 p50_us=36.096 p95_us=42.24 p99_us=52.864 min_us=32.451 max_us=82.105 mean_us=36.8982 client_cpu_percent=69.8145868767978 server_cpu_percent=23.287209012999494 payload_mib_s=52.905078125
+[INFO] Benchmark done. Results are stored in: "/home/fanmi/workspace/rpc-framework-bench/results/2026-11-25-full-0f6c850/native-smoke/benchmark_msa_rpc-native-smoke_20261125_072138_554040.csv"

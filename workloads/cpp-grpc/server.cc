@@ -1,14 +1,36 @@
+#include <algorithm>
+#include <atomic>
+#include <csignal>
 #include <cstdint>
-#include <memory>
-#include <string>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <memory>
+#include <string>
+#include <thread>
 
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/resource_quota.h>
 
 #include "benchmark.grpc.pb.h"
+
+namespace {
+std::atomic<bool> g_shutdown_requested{false};
+
+void HandleSignal(int) { g_shutdown_requested.store(true); }
+
+int ParseServerThreads() {
+  const char* raw = std::getenv("SERVER_THREADS");
+  if (!raw || *raw == '\0') return 1;
+  char* end = nullptr;
+  long parsed = std::strtol(raw, &end, 10);
+  if (end == raw || *end != '\0' || parsed <= 0 || parsed > 256) {
+    throw std::invalid_argument("SERVER_THREADS must be a positive integer");
+  }
+  return static_cast<int>(parsed);
+}
+}  // namespace
 
 class TestService final : public grpc::testing::TestService::Service {
   grpc::Status UnaryCall(grpc::ServerContext*,
@@ -20,21 +42,27 @@ class TestService final : public grpc::testing::TestService::Service {
     }
     auto* payload = response->mutable_payload();
     payload->set_type(grpc::testing::COMPRESSABLE);
-    payload->mutable_body()->resize(static_cast<std::size_t>(request->response_size()), '\0');
+    payload->mutable_body()->assign(static_cast<std::size_t>(request->response_size()), '\0');
     return grpc::Status::OK;
   }
-  grpc::Status StreamingOutputCall(grpc::ServerContext*,
+  grpc::Status StreamingOutputCall(
+      grpc::ServerContext*,
       const grpc::testing::StreamingOutputCallRequest* request,
       grpc::ServerWriter<grpc::testing::StreamingOutputCallResponse>* writer) override {
-    for (const auto& parameter : request->response_parameters()) {
-      if (parameter.size() < 0) return {grpc::StatusCode::INVALID_ARGUMENT, "negative size"};
-      grpc::testing::StreamingOutputCallResponse response;
-      response.mutable_payload()->mutable_body()->resize(parameter.size(), '\0');
+    grpc::testing::StreamingOutputCallResponse response;
+    auto* payload = response.mutable_payload();
+    payload->set_type(grpc::testing::COMPRESSABLE);
+    const int count = request->response_parameters_size();
+    for (int i = 0; i < count; ++i) {
+      const int size = request->response_parameters(i).size();
+      if (size < 0) return {grpc::StatusCode::INVALID_ARGUMENT, "negative size"};
+      payload->mutable_body()->assign(static_cast<std::size_t>(size), '\0');
       if (!writer->Write(response)) return {grpc::StatusCode::CANCELLED, "write failed"};
     }
     return grpc::Status::OK;
   }
-  grpc::Status StreamingInputCall(grpc::ServerContext*,
+  grpc::Status StreamingInputCall(
+      grpc::ServerContext*,
       grpc::ServerReader<grpc::testing::StreamingInputCallRequest>* reader,
       grpc::testing::StreamingInputCallResponse* response) override {
     grpc::testing::StreamingInputCallRequest request;
@@ -46,15 +74,20 @@ class TestService final : public grpc::testing::TestService::Service {
     response->set_aggregated_payload_size(static_cast<int32_t>(total));
     return grpc::Status::OK;
   }
-  grpc::Status FullDuplexCall(grpc::ServerContext*,
+  grpc::Status FullDuplexCall(
+      grpc::ServerContext*,
       grpc::ServerReaderWriter<grpc::testing::StreamingOutputCallResponse,
                                grpc::testing::StreamingOutputCallRequest>* stream) override {
     grpc::testing::StreamingOutputCallRequest request;
+    grpc::testing::StreamingOutputCallResponse response;
+    auto* payload = response.mutable_payload();
+    payload->set_type(grpc::testing::COMPRESSABLE);
     while (stream->Read(&request)) {
-      for (const auto& parameter : request.response_parameters()) {
-        if (parameter.size() < 0) return {grpc::StatusCode::INVALID_ARGUMENT, "negative size"};
-        grpc::testing::StreamingOutputCallResponse response;
-        response.mutable_payload()->mutable_body()->resize(parameter.size(), '\0');
+      const int count = request.response_parameters_size();
+      for (int i = 0; i < count; ++i) {
+        const int size = request.response_parameters(i).size();
+        if (size < 0) return {grpc::StatusCode::INVALID_ARGUMENT, "negative size"};
+        payload->mutable_body()->assign(static_cast<std::size_t>(size), '\0');
         if (!stream->Write(response)) return {grpc::StatusCode::CANCELLED, "write failed"};
       }
     }
@@ -69,15 +102,20 @@ using OutputResponse = grpc::testing::StreamingOutputCallResponse;
 
 class OutputReactor final : public grpc::ServerWriteReactor<OutputResponse> {
  public:
-  explicit OutputReactor(const OutputRequest* request) : request_(request) { Next(); }
+  explicit OutputReactor(const OutputRequest* request) : request_(request) {
+    response_.mutable_payload()->set_type(grpc::testing::COMPRESSABLE);
+    Next();
+  }
   void OnWriteDone(bool ok) override {
     if (ok) Next();
     else Finish({grpc::StatusCode::CANCELLED, "write failed"});
   }
   void OnDone() override { delete this; }
+
  private:
   void Next() {
-    if (index_ == request_->response_parameters_size()) {
+    const int count = request_->response_parameters_size();
+    if (index_ == count) {
       Finish(grpc::Status::OK);
       return;
     }
@@ -86,8 +124,7 @@ class OutputReactor final : public grpc::ServerWriteReactor<OutputResponse> {
       Finish({grpc::StatusCode::INVALID_ARGUMENT, "negative size"});
       return;
     }
-    response_.Clear();
-    response_.mutable_payload()->mutable_body()->resize(size, '\0');
+    response_.mutable_payload()->mutable_body()->assign(static_cast<std::size_t>(size), '\0');
     StartWrite(&response_);
   }
   const OutputRequest* request_;
@@ -113,6 +150,7 @@ class InputReactor final : public grpc::ServerReadReactor<InputRequest> {
     StartRead(&request_);
   }
   void OnDone() override { delete this; }
+
  private:
   InputResponse* response_;
   InputRequest request_;
@@ -121,9 +159,15 @@ class InputReactor final : public grpc::ServerReadReactor<InputRequest> {
 
 class BidiReactor final : public grpc::ServerBidiReactor<OutputRequest, OutputResponse> {
  public:
-  BidiReactor() { StartRead(&request_); }
+  BidiReactor() {
+    response_.mutable_payload()->set_type(grpc::testing::COMPRESSABLE);
+    StartRead(&request_);
+  }
   void OnReadDone(bool ok) override {
-    if (!ok) { Finish(grpc::Status::OK); return; }
+    if (!ok) {
+      Finish(grpc::Status::OK);
+      return;
+    }
     index_ = 0;
     Next();
   }
@@ -132,9 +176,11 @@ class BidiReactor final : public grpc::ServerBidiReactor<OutputRequest, OutputRe
     else Finish({grpc::StatusCode::CANCELLED, "write failed"});
   }
   void OnDone() override { delete this; }
+
  private:
   void Next() {
-    if (index_ == request_.response_parameters_size()) {
+    const int count = request_.response_parameters_size();
+    if (index_ == count) {
       request_.Clear();
       StartRead(&request_);
       return;
@@ -144,8 +190,7 @@ class BidiReactor final : public grpc::ServerBidiReactor<OutputRequest, OutputRe
       Finish({grpc::StatusCode::INVALID_ARGUMENT, "negative size"});
       return;
     }
-    response_.Clear();
-    response_.mutable_payload()->mutable_body()->resize(size, '\0');
+    response_.mutable_payload()->mutable_body()->assign(static_cast<std::size_t>(size), '\0');
     StartWrite(&response_);
   }
   OutputRequest request_;
@@ -156,13 +201,15 @@ class BidiReactor final : public grpc::ServerBidiReactor<OutputRequest, OutputRe
 class CallbackService final : public grpc::testing::TestService::CallbackService {
  public:
   grpc::ServerUnaryReactor* UnaryCall(grpc::CallbackServerContext* context,
-      const grpc::testing::SimpleRequest* request,
-      grpc::testing::SimpleResponse* response) override {
+                                      const grpc::testing::SimpleRequest* request,
+                                      grpc::testing::SimpleResponse* response) override {
     auto* reactor = context->DefaultReactor();
     if (request->response_size() < 0) {
       reactor->Finish({grpc::StatusCode::INVALID_ARGUMENT, "negative size"});
     } else {
-      response->mutable_payload()->mutable_body()->resize(request->response_size(), '\0');
+      auto* payload = response->mutable_payload();
+      payload->set_type(grpc::testing::COMPRESSABLE);
+      payload->mutable_body()->assign(static_cast<std::size_t>(request->response_size()), '\0');
       reactor->Finish(grpc::Status::OK);
     }
     return reactor;
@@ -176,7 +223,9 @@ class CallbackService final : public grpc::testing::TestService::CallbackService
     return new InputReactor(response);
   }
   grpc::ServerBidiReactor<OutputRequest, OutputResponse>* FullDuplexCall(
-      grpc::CallbackServerContext*) override { return new BidiReactor; }
+      grpc::CallbackServerContext*) override {
+    return new BidiReactor;
+  }
 };
 
 std::string ReadFile(const char* path) {
@@ -194,6 +243,10 @@ int main(int argc, char** argv) {
     return 2;
   }
 
+  const int server_threads = ParseServerThreads();
+  const char* api = std::getenv("CPP_API");
+  const bool use_callback = api && std::string(api) == "callback";
+
   TestService service;
   CallbackService callback_service;
   grpc::ServerBuilder builder;
@@ -204,13 +257,36 @@ int main(int argc, char** argv) {
     credentials = grpc::SslServerCredentials(options);
   }
   builder.AddListeningPort(address, credentials);
-  const char* api = std::getenv("CPP_API");
-  if (api && std::string(api) == "callback") builder.RegisterService(&callback_service);
-  else builder.RegisterService(&service);
+
+  // Align polling/callback thread budgets with SERVER_THREADS to avoid 32-thread
+  // oversubscription when pinned to 1–8 physical cores.
+  builder.SetSyncServerOption(grpc::ServerBuilder::NUM_CQS, server_threads);
+  builder.SetSyncServerOption(grpc::ServerBuilder::MIN_POLLERS, server_threads);
+  builder.SetSyncServerOption(grpc::ServerBuilder::MAX_POLLERS, std::max(server_threads * 2, 2));
+  if (use_callback) {
+    grpc::ResourceQuota quota("cpp-callback-server");
+    quota.SetMaxThreads(std::max(server_threads * 2, 4));
+    builder.SetResourceQuota(quota);
+    builder.RegisterService(&callback_service);
+  } else {
+    builder.RegisterService(&service);
+  }
+
   std::unique_ptr<grpc::Server> server = builder.BuildAndStart();
   if (!server) {
     return 1;
   }
+
+  std::signal(SIGINT, HandleSignal);
+  std::signal(SIGTERM, HandleSignal);
+  std::thread shutdown_watcher([&server] {
+    while (!g_shutdown_requested.load()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    server->Shutdown();
+  });
   server->Wait();
+  g_shutdown_requested.store(true);
+  shutdown_watcher.join();
   return 0;
 }

@@ -41,8 +41,9 @@ int main(int argc, char** argv) {
       auto client = std::make_shared<native_rpc::BenchmarkClient>(
           std::make_shared<protocol::TBinaryProtocol>(transport));
       transport->open();
-      return [client, config, request = std::string(config.request_size, '\0')] {
-        std::string response;
+      return [client, config, request = std::string(config.request_size, '\0'),
+              response = std::string()]() mutable {
+        response.clear();
         client->call(response, request, config.response_size);
         load::validate(response.size(), config.response_size);
       };

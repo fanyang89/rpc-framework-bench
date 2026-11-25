@@ -1,0 +1,22 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "8,9,10,11,12,13,14,15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/go-server",
+    "-addr=127.0.0.1:26377"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/grpc-native-build/grpc-native",
+    "client",
+    "127.0.0.1:26377",
+    "128",
+    "1024",
+    "1024",
+    "1000",
+    "5000"
+  ]
+}

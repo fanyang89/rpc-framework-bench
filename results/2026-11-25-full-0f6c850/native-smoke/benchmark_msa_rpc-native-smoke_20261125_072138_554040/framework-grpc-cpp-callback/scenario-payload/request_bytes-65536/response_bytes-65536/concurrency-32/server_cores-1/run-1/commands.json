@@ -1,0 +1,22 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/cpp-server",
+    "127.0.0.1:26110"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/grpc-native-build/grpc-native",
+    "client",
+    "127.0.0.1:26110",
+    "32",
+    "65536",
+    "65536",
+    "100",
+    "100"
+  ]
+}

@@ -51,11 +51,18 @@ def main():
     if not required_cpus <= os.sched_getaffinity(0):
         parser.error("matrix requires CPUs 0-15")
     # Require separate physical cores for the client and server CPU sets.
-    topology = [
-        Path(f"/sys/devices/system/cpu/cpu{i}/topology/core_id").read_text().strip()
+    topology = {
+        (
+            Path(f"/sys/devices/system/cpu/cpu{i}/topology/physical_package_id")
+            .read_text()
+            .strip(),
+            Path(f"/sys/devices/system/cpu/cpu{i}/topology/core_id")
+            .read_text()
+            .strip(),
+        )
         for i in range(16)
-    ]
-    if len(set(topology)) != 16:
+    }
+    if len(topology) != 16:
         parser.error("CPUs 0-15 must be distinct physical cores")
     args.output.mkdir(parents=True, exist_ok=False)
     output = args.output.resolve()

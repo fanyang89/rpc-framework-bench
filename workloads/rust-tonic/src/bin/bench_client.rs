@@ -59,9 +59,155 @@ struct BenchmarkResult {
     mean_us: f64,
 }
 
+// Log-linear histogram with 8-bit mantissa (256 sub-buckets per octave, <0.4% error,
+// exact below 512 ns, covers up to ~68.7 s) for O(1) zero-allocation latency recording.
+const HIST_SUB_BITS: u32 = 8;
+const HIST_SUB_SIZE: usize = 1 << HIST_SUB_BITS;
+const HIST_BUCKETS: usize = HIST_SUB_SIZE * 30;
+
+struct LatencyHistogram {
+    buckets: Vec<u64>,
+    count: u64,
+    sum_ns: u128,
+    min_ns: u64,
+    max_ns: u64,
+}
+
+impl LatencyHistogram {
+    fn new() -> Self {
+        Self {
+            buckets: vec![0u64; HIST_BUCKETS],
+            count: 0,
+            sum_ns: 0,
+            min_ns: 0,
+            max_ns: 0,
+        }
+    }
+
+    fn bucket(ns: u64) -> usize {
+        if ns < (2 * HIST_SUB_SIZE) as u64 {
+            return ns as usize;
+        }
+        let msb = 63 - ns.leading_zeros();
+        let shift = msb - HIST_SUB_BITS;
+        let octave = (shift + 1) as usize;
+        let sub = ((ns >> shift) as usize) & (HIST_SUB_SIZE - 1);
+        (octave * HIST_SUB_SIZE + sub).min(HIST_BUCKETS - 1)
+    }
+
+    fn value(idx: usize) -> u64 {
+        if idx < 2 * HIST_SUB_SIZE {
+            return idx as u64;
+        }
+        let octave = idx >> HIST_SUB_BITS;
+        let sub = (idx & (HIST_SUB_SIZE - 1)) as u64;
+        let shift = (octave - 1) as u32;
+        ((HIST_SUB_SIZE as u64) + sub) << shift
+    }
+
+    fn record(&mut self, ns: u64) {
+        self.buckets[Self::bucket(ns)] += 1;
+        if self.count == 0 || ns < self.min_ns {
+            self.min_ns = ns;
+        }
+        if ns > self.max_ns {
+            self.max_ns = ns;
+        }
+        self.count += 1;
+        self.sum_ns += u128::from(ns);
+    }
+
+    fn merge(&mut self, other: &Self) {
+        if other.count == 0 {
+            return;
+        }
+        if self.count == 0 || other.min_ns < self.min_ns {
+            self.min_ns = other.min_ns;
+        }
+        if other.max_ns > self.max_ns {
+            self.max_ns = other.max_ns;
+        }
+        self.count += other.count;
+        self.sum_ns += other.sum_ns;
+        for (dst, &src) in self.buckets.iter_mut().zip(other.buckets.iter()) {
+            *dst += src;
+        }
+    }
+
+    fn percentile_us(&self, fraction: f64) -> f64 {
+        if self.count == 0 {
+            return 0.0;
+        }
+        let rank = ((fraction * self.count as f64).ceil() as u64).max(1);
+        let mut seen = 0u64;
+        for (idx, &c) in self.buckets.iter().enumerate() {
+            seen += c;
+            if seen >= rank {
+                let v = Self::value(idx).clamp(self.min_ns, self.max_ns);
+                return v as f64 / 1000.0;
+            }
+        }
+        self.max_ns as f64 / 1000.0
+    }
+}
+
 struct WorkerResult {
-    latencies: Vec<u64>,
+    hist: LatencyHistogram,
     errors: u64,
+    active_seconds: f64,
+}
+
+#[derive(Clone)]
+struct RequestTemplates {
+    unary: SimpleRequest,
+    input_messages: Vec<StreamingInputCallRequest>,
+    output_request: StreamingOutputCallRequest,
+    ping_request: StreamingOutputCallRequest,
+    expected_aggregate: usize,
+    expected_response_size: usize,
+}
+
+impl RequestTemplates {
+    fn new(req_size: usize, resp_size: usize, messages: usize) -> Self {
+        let payload = Some(Payload {
+            r#type: PayloadType::Compressable as i32,
+            body: Bytes::from(vec![0; req_size]),
+        });
+        let unary = SimpleRequest {
+            response_type: PayloadType::Compressable as i32,
+            response_size: resp_size as i32,
+            payload: payload.clone(),
+        };
+        let input_item = StreamingInputCallRequest {
+            payload: payload.clone(),
+        };
+        let input_messages = vec![input_item; messages];
+        let output_request = StreamingOutputCallRequest {
+            response_type: PayloadType::Compressable as i32,
+            response_parameters: vec![
+                ResponseParameters {
+                    size: resp_size as i32,
+                };
+                messages
+            ],
+            payload: payload.clone(),
+        };
+        let ping_request = StreamingOutputCallRequest {
+            response_type: PayloadType::Compressable as i32,
+            response_parameters: vec![ResponseParameters {
+                size: resp_size as i32,
+            }],
+            payload,
+        };
+        Self {
+            unary,
+            input_messages,
+            output_request,
+            ping_request,
+            expected_aggregate: req_size * messages,
+            expected_response_size: resp_size,
+        }
+    }
 }
 
 impl Default for Options {
@@ -241,31 +387,23 @@ fn validate_response(response: &SimpleResponse, expected_size: usize) -> bool {
 
 async fn run_worker(
     mut client: TestServiceClient<Channel>,
-    request: SimpleRequest,
+    templates: RequestTemplates,
     warmup: Duration,
     duration: Duration,
-    expected_response_size: usize,
     ready: tokio::sync::mpsc::Sender<()>,
     measurement_start: oneshot::Receiver<Instant>,
     mode: String,
     messages: usize,
 ) -> WorkerResult {
     let mut result = WorkerResult {
-        latencies: Vec::with_capacity(4096),
+        hist: LatencyHistogram::new(),
         errors: 0,
+        active_seconds: duration.as_secs_f64(),
     };
 
     let warmup_end = Instant::now() + warmup;
     while Instant::now() < warmup_end {
-        if !call(
-            &mut client,
-            &request,
-            &mode,
-            messages,
-            expected_response_size,
-        )
-        .await
-        {
+        if !call(&mut client, &templates, &mode, messages).await {
             result.errors += 1;
         }
     }
@@ -280,90 +418,80 @@ async fn run_worker(
     tokio::time::sleep_until(start_at).await;
     let end_at = start_at + duration;
 
-    loop {
-        let started = Instant::now();
-        if started >= end_at {
-            break;
+    let mut now = Instant::now();
+    while now < end_at {
+        let started = now;
+        let success = call(&mut client, &templates, &mode, messages).await;
+        now = Instant::now();
+        if success {
+            let latency_ns = u64::try_from(now.saturating_duration_since(started).as_nanos())
+                .expect("RPC latency must fit in u64");
+            result.hist.record(latency_ns);
+        } else {
+            result.errors += 1;
         }
-        let success = call(
-            &mut client,
-            &request,
-            &mode,
-            messages,
-            expected_response_size,
-        )
-        .await;
-        let latency = started.elapsed();
-        match success {
-            true => {
-                result
-                    .latencies
-                    .push(u64::try_from(latency.as_nanos()).expect("RPC latency must fit in u64"));
-            }
-            _ => result.errors += 1,
-        }
+    }
+    if now > start_at {
+        result.active_seconds = now.duration_since(start_at).as_secs_f64();
     }
     result
 }
 
 async fn call(
     client: &mut TestServiceClient<Channel>,
-    request: &SimpleRequest,
+    templates: &RequestTemplates,
     mode: &str,
     messages: usize,
-    expected: usize,
 ) -> bool {
+    let expected = templates.expected_response_size;
     tokio::time::timeout(Duration::from_secs(10), async {
-        let output_request = |count| StreamingOutputCallRequest {
-            response_type: 0,
-            response_parameters: vec![
-                ResponseParameters {
-                    size: expected as i32
-                };
-                count
-            ],
-            payload: request.payload.clone(),
-        };
         match mode {
             "unary" => {
-                let response = client.unary_call(request.clone()).await?;
+                let response = client.unary_call(templates.unary.clone()).await?;
                 if !validate_response(response.get_ref(), expected) {
                     return Err(tonic::Status::data_loss("wrong payload"));
                 }
             }
             "client-stream" => {
-                let input = StreamingInputCallRequest {
-                    payload: request.payload.clone(),
-                };
                 let response = client
-                    .streaming_input_call(tokio_stream::iter(vec![input; messages]))
+                    .streaming_input_call(tokio_stream::iter(templates.input_messages.clone()))
                     .await?
                     .into_inner();
-                let size = request.payload.as_ref().map_or(0, |p| p.body.len());
-                if response.aggregated_payload_size as usize != size * messages {
+                if response.aggregated_payload_size as usize != templates.expected_aggregate {
                     return Err(tonic::Status::data_loss("wrong aggregate"));
                 }
             }
-            "server-stream" | "bidi" => {
+            "server-stream" => {
+                let mut stream = client
+                    .streaming_output_call(templates.output_request.clone())
+                    .await?
+                    .into_inner();
+                for _ in 0..messages {
+                    let response = stream
+                        .message()
+                        .await?
+                        .ok_or_else(|| tonic::Status::data_loss("missing message"))?;
+                    if !response.payload.is_some_and(|p| p.body.len() == expected) {
+                        return Err(tonic::Status::data_loss("wrong payload"));
+                    }
+                }
+                if stream.message().await?.is_some() {
+                    return Err(tonic::Status::data_loss("extra message"));
+                }
+            }
+            "bidi" => {
                 let (tx, rx) = tokio::sync::mpsc::channel(1);
-                let mut stream = if mode == "bidi" {
-                    // Some peers send response headers only after the first request.
-                    tx.send(output_request(1))
-                        .await
-                        .map_err(|_| tonic::Status::cancelled("sender closed"))?;
-                    client
-                        .full_duplex_call(tokio_stream::wrappers::ReceiverStream::new(rx))
-                        .await?
-                        .into_inner()
-                } else {
-                    client
-                        .streaming_output_call(output_request(messages))
-                        .await?
-                        .into_inner()
-                };
+                // Some peers send response headers only after the first request.
+                tx.send(templates.ping_request.clone())
+                    .await
+                    .map_err(|_| tonic::Status::cancelled("sender closed"))?;
+                let mut stream = client
+                    .full_duplex_call(tokio_stream::wrappers::ReceiverStream::new(rx))
+                    .await?
+                    .into_inner();
                 for index in 0..messages {
-                    if mode == "bidi" && index != 0 {
-                        tx.send(output_request(1))
+                    if index != 0 {
+                        tx.send(templates.ping_request.clone())
                             .await
                             .map_err(|_| tonic::Status::cancelled("sender closed"))?;
                     }
@@ -388,14 +516,6 @@ async fn call(
     .is_ok_and(|result| result.is_ok())
 }
 
-fn percentile(sorted: &[u64], fraction: f64) -> f64 {
-    if sorted.is_empty() {
-        return 0.0;
-    }
-    let index = ((fraction * sorted.len() as f64).ceil() as usize).saturating_sub(1);
-    sorted[index] as f64 / 1000.0
-}
-
 async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
     let config = &options.config;
     let scheme = if config.tls_ca.is_empty() {
@@ -417,14 +537,7 @@ async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
         channels.push(endpoint.clone().connect().await?);
     }
 
-    let request = SimpleRequest {
-        response_type: PayloadType::Compressable as i32,
-        response_size: config.resp_size as i32,
-        payload: Some(Payload {
-            r#type: PayloadType::Compressable as i32,
-            body: Bytes::from(vec![0; config.req_size]),
-        }),
-    };
+    let templates = RequestTemplates::new(config.req_size, config.resp_size, config.messages);
     let (ready_tx, mut ready_rx) = tokio::sync::mpsc::channel(config.concurrency);
     let mut start_senders = Vec::with_capacity(config.concurrency);
     let mut workers: Vec<JoinHandle<WorkerResult>> = Vec::with_capacity(config.concurrency);
@@ -435,10 +548,9 @@ async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
         start_senders.push(start_tx);
         workers.push(tokio::spawn(run_worker(
             client,
-            request.clone(),
+            templates.clone(),
             config.warmup,
             config.duration,
-            config.resp_size,
             ready_tx.clone(),
             start_rx,
             config.mode.clone(),
@@ -460,37 +572,39 @@ async fn benchmark(options: Options) -> Result<(), Box<dyn Error>> {
             .map_err(|_| "worker stopped before measurement")?;
     }
 
-    let mut latencies = Vec::new();
+    let mut combined = LatencyHistogram::new();
     let mut errors = 0;
+    let mut ops_per_second = 0.0;
     for worker in workers {
         let worker = worker.await?;
-        latencies.extend(worker.latencies);
+        combined.merge(&worker.hist);
         errors += worker.errors;
+        if worker.hist.count > 0 && worker.active_seconds > 0.0 {
+            ops_per_second += worker.hist.count as f64 / worker.active_seconds;
+        }
     }
-    latencies.sort_unstable();
 
-    let total: u128 = latencies.iter().map(|&latency| u128::from(latency)).sum();
-    let completed = latencies.len();
+    let completed = combined.count as usize;
     let (min_us, max_us, mean_us) = if completed == 0 {
         (0.0, 0.0, 0.0)
     } else {
         (
-            latencies[0] as f64 / 1000.0,
-            latencies[completed - 1] as f64 / 1000.0,
-            total as f64 / completed as f64 / 1000.0,
+            combined.min_ns as f64 / 1000.0,
+            combined.max_ns as f64 / 1000.0,
+            combined.sum_ns as f64 / completed as f64 / 1000.0,
         )
     };
     let output = BenchmarkResult {
         round: options.round,
         label: options.label,
-        client_framework_version: "tonic/0.14.6",
+        client_framework_version: concat!("tonic/", env!("TONIC_VERSION")),
         server_version: options.server_version,
         completed,
         errors,
-        ops_per_second: completed as f64 / config.duration.as_secs_f64(),
-        p50_us: percentile(&latencies, 0.50),
-        p95_us: percentile(&latencies, 0.95),
-        p99_us: percentile(&latencies, 0.99),
+        ops_per_second,
+        p50_us: combined.percentile_us(0.50),
+        p95_us: combined.percentile_us(0.95),
+        p99_us: combined.percentile_us(0.99),
         min_us,
         max_us,
         mean_us,
@@ -547,8 +661,24 @@ mod tests {
     }
 
     #[test]
-    fn uses_nearest_rank_percentiles() {
-        assert_eq!(percentile(&[1000, 2000, 3000, 4000], 0.50), 2.0);
-        assert_eq!(percentile(&[1000, 2000, 3000, 4000], 0.99), 4.0);
+    fn uses_nearest_rank_percentiles_in_histogram() {
+        let mut hist = LatencyHistogram::new();
+        for &v in &[1000u64, 2000, 3000, 4000] {
+            hist.record(v);
+        }
+        assert_eq!(hist.percentile_us(0.50), 2.0);
+        assert_eq!(hist.percentile_us(0.99), 4.0);
+    }
+
+    #[test]
+    fn histogram_accuracy_across_scales() {
+        let mut hist = LatencyHistogram::new();
+        for v in [100u64, 512, 15_500, 125_000, 1_500_000, 13_500_000] {
+            hist.record(v);
+        }
+        let p50 = hist.percentile_us(0.50);
+        assert!((p50 - 15.5).abs() < 0.1, "p50={p50}");
+        let p99 = hist.percentile_us(0.99);
+        assert!((p99 - 13_500.0).abs() < 60.0, "p99={p99}");
     }
 }

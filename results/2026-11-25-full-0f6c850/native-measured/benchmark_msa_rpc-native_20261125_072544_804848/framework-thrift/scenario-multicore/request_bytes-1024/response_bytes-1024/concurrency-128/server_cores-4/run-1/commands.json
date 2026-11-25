@@ -1,0 +1,24 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "12,13,14,15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/native-build/thrift-native",
+    "server",
+    "26351",
+    "4"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/native-build/thrift-native",
+    "client",
+    "127.0.0.1:26351",
+    "128",
+    "1024",
+    "1024",
+    "1000",
+    "5000"
+  ]
+}

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -34,7 +35,6 @@ import seaborn as sns
 from benchkit.lwchart import generate_chart_from_single_csv
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_DATASET = ROOT / "results" / "2026-11-21-full-af19148"
 DEFAULT_FIGURES_DIR = ROOT / "report" / "figures"
 
 # Consistent human-readable display names and colorblind-safe palette across all charts.
@@ -687,9 +687,16 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
         )
         ax.set_xlabel("Server CPU Affinity Budget (Clients Pinned to Physical Cores 0–7)\n", labelpad=8)
         ax.set_ylabel("Throughput (k RPC/s)")
+        gl8 = raw[
+            (raw["scenario"] == "multicore")
+            & (raw["framework"] == "grpc-lite")
+            & (raw["server_cores"] == 8)
+        ]
+        gl_cli_cpu = float(gl8["client_cpu_percent"].median())
+        gl_srv_cpu = float(gl8["server_cpu_percent"].median())
         _add_footnote(
             ax.figure,
-            "*grpc-lite 8-core client CPU 588% vs server 256% (client-limited)  |  Median of 3 × 5 s rounds; bands = min–max",
+            f"*grpc-lite 8-core client CPU {gl_cli_cpu:.0f}% vs server {gl_srv_cpu:.0f}% (client-limited)  |  Median of 3 × 5 s rounds; bands = min–max",
             y=0.015,
         )
         return ax
@@ -731,7 +738,12 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
         ax.set_title("")
         ax.set_xlabel("Symmetric Request & Response Payload Size (Concurrency = 32, 1 Server Core)", labelpad=8)
         ax.set_ylabel("Application Payload Bandwidth (MiB/s, Req + Resp)")
-        ax.set_ylim(0, 6650)
+        max_top = max(
+            (_bar_top_y(ax, bar) for container in ax.containers for bar in container),
+            default=5500.0,
+        )
+        y_upper = max(6650.0, math.ceil((max_top * 1.24) / 500.0) * 500.0)
+        ax.set_ylim(0, y_upper)
         ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
         ax.grid(axis="y", linestyle="--", alpha=0.55)
         ax.grid(axis="x", visible=False)
@@ -876,7 +888,17 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
     return outputs
 
 
-def generate_extended_charts(ext_csv: Path, dest_dir: Path) -> list[Path]:
+def _detect_grpc_lite_label(dataset: Path) -> str:
+    env_file = dataset / "extended-measured" / "environment.json"
+    if env_file.is_file():
+        meta = json.loads(env_file.read_text())
+        ver = meta.get("versions", {}).get("GRPC_LITE_VERSION", "")
+        if ver:
+            return ver
+    return "grpc-lite"
+
+
+def generate_extended_charts(ext_csv: Path, dest_dir: Path, grpc_lite_ver: str = "grpc-lite") -> list[Path]:
     """Generate the 4 extended gRPC matrix Benchkit charts (Plaintext vs TLS)."""
     outputs = []
 
@@ -938,7 +960,7 @@ def generate_extended_charts(ext_csv: Path, dest_dir: Path) -> list[Path]:
         )
         _add_footnote(
             chart.figure,
-            f"grpc-lite af19148 uses OpenSSL 4.0.3 for TLS  |  {FOOTNOTE_HOST}",
+            f"{grpc_lite_ver} uses OpenSSL 4.0.3 for TLS  |  {FOOTNOTE_HOST}",
             y=0.012,
         )
         chart.figure.subplots_adjust(left=0.07, right=0.98, bottom=0.21, wspace=0.12)
@@ -1006,9 +1028,23 @@ def generate_extended_charts(ext_csv: Path, dest_dir: Path) -> list[Path]:
             fontweight="bold",
             color="#0F172A",
         )
+        raw_ext = pd.read_csv(ext_csv, sep=";")
+        raw_ext.columns = [c.split("/", 1)[-1] for c in raw_ext.columns]
+        gl_mc_cpu = (
+            raw_ext[
+                (raw_ext["server"] == "grpc-lite")
+                & (raw_ext["mode"] == "unary")
+                & (raw_ext["request_bytes"] == 1024)
+                & (raw_ext["server_cores"].isin([4, 8]))
+            ]
+            .groupby(["client", "transport", "server_cores"])["server_cpu_percent"]
+            .median()
+        )
+        cpu_min = float(gl_mc_cpu.min())
+        cpu_max = float(gl_mc_cpu.max())
         _add_footnote(
             chart.figure,
-            "grpc-lite 4–8 core plateau is client-CPU limited (server CPU 176%–293% of 400%–800% budget)  |  Median of 3 × 5 s rounds; whiskers = min–max",
+            f"grpc-lite 4–8 core plateau is client-CPU limited (server CPU {cpu_min:.0f}%–{cpu_max:.0f}% of 400%–800% budget)  |  Median of 3 × 5 s rounds; whiskers = min–max",
             y=0.012,
         )
         chart.figure.subplots_adjust(left=0.07, right=0.98, bottom=0.155, hspace=0.28, wspace=0.12)
@@ -1059,7 +1095,7 @@ def generate_extended_charts(ext_csv: Path, dest_dir: Path) -> list[Path]:
         chart.figure.set_dpi(200)
         chart.set_titles("{row_name} | {col_name}", size=10.2, weight="bold", pad=6)
         chart.set_axis_labels("", "Complete Streaming RPCs / s (k)")
-        col_ymax = [78, 58, 11.2]
+        col_ymax = [82, 66, 11.2]
         for r_idx in range(2):
             for c_idx in range(3):
                 ax = chart.axes[r_idx, c_idx]
@@ -1373,8 +1409,8 @@ def main() -> None:
     parser.add_argument(
         "--dataset",
         type=Path,
-        default=DEFAULT_DATASET,
-        help="Path to the full benchmark dataset directory.",
+        required=True,
+        help="Path to a completed post-fix full benchmark dataset directory.",
     )
     parser.add_argument(
         "--output",
@@ -1390,12 +1426,14 @@ def main() -> None:
 
     native_csv = next((dataset / "native-measured").glob("benchmark_*.csv"))
     ext_csv = export_extended_csv(dataset)
-    tls_csv = export_tls_csv(dataset)
+    grpc_lite_ver = _detect_grpc_lite_label(dataset)
 
     generated: list[Path] = []
     generated.extend(generate_native_charts(native_csv, dest))
-    generated.extend(generate_extended_charts(ext_csv, dest))
-    generated.append(generate_tls_evolution_chart(tls_csv, dest))
+    generated.extend(generate_extended_charts(ext_csv, dest, grpc_lite_ver=grpc_lite_ver))
+    if (dataset / "tls" / "measured").is_dir():
+        tls_csv = export_tls_csv(dataset)
+        generated.append(generate_tls_evolution_chart(tls_csv, dest))
 
     print(f"\nGenerated {len(generated)} Benchkit figure pairs (PNG + PDF) in {dest}:")
     for p in generated:

@@ -66,6 +66,16 @@ def commands(framework, cores, port):
     )
     env.pop("TLS_CERT", None)
     env.pop("TLS_KEY", None)
+    for proxy_var in (
+        "http_proxy",
+        "https_proxy",
+        "HTTP_PROXY",
+        "HTTPS_PROXY",
+        "all_proxy",
+        "ALL_PROXY",
+        "grpc_proxy",
+    ):
+        env.pop(proxy_var, None)
     if framework in ("brpc", "thrift", "capnp"):
         binary = ROOT / f"bin/native-build/{framework}-native"
         server = [str(binary), "server", str(port), str(cores)]
@@ -103,6 +113,22 @@ class RpcBenchmark(Benchmark):
             post_run_hooks=(),
         )
         self.smoke = smoke
+        self._next_port = 26051
+
+    def _allocate_port(self):
+        # Stay below Linux's default ephemeral range (32768-60999) to avoid
+        # TIME_WAIT port collisions across consecutive 128-connection runs.
+        for _ in range(950):
+            port = self._next_port
+            self._next_port = 26051 if port >= 26999 else port + 1
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+                probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                try:
+                    probe.bind(("127.0.0.1", port))
+                    return port
+                except OSError:
+                    continue
+        raise RuntimeError("no free benchmark port available in 26051-26999")
 
     @property
     def bench_src_path(self):
@@ -143,9 +169,7 @@ class RpcBenchmark(Benchmark):
         **kwargs,
     ):
         directory = Path(record_data_dir)
-        with socket.socket() as reservation:
-            reservation.bind(("127.0.0.1", 0))
-            port = reservation.getsockname()[1]
+        port = self._allocate_port()
         server_command, client, env = commands(framework, server_cores, port)
         server_cpus = ",".join(map(str, range(16 - server_cores, 16)))
         server_command = ["taskset", "-c", server_cpus, *server_command]

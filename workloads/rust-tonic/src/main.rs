@@ -15,10 +15,24 @@ pub mod grpc_testing {
     tonic::include_proto!("grpc.testing");
 }
 
+// Shared read-only zero buffer avoids per-RPC heap allocations on large responses,
+// matching the client template's reference-counted Bytes approach.
+static ZERO_PAYLOAD: [u8; 1 << 20] = [0u8; 1 << 20];
+
+fn payload_body(size: usize) -> Bytes {
+    if size <= ZERO_PAYLOAD.len() {
+        Bytes::from_static(&ZERO_PAYLOAD[..size])
+    } else {
+        Bytes::from(vec![0u8; size])
+    }
+}
+
 #[derive(Default)]
 struct BenchmarkService;
 
-type Output = ReceiverStream<Result<StreamingOutputCallResponse, Status>>;
+type OutputStream =
+    tokio_stream::Iter<std::vec::IntoIter<Result<StreamingOutputCallResponse, Status>>>;
+type BidiOutput = ReceiverStream<Result<StreamingOutputCallResponse, Status>>;
 
 async fn send_responses(
     tx: &mpsc::Sender<Result<StreamingOutputCallResponse, Status>>,
@@ -31,7 +45,7 @@ async fn send_responses(
         tx.send(Ok(StreamingOutputCallResponse {
             payload: Some(Payload {
                 r#type: 0,
-                body: Bytes::from(vec![0; parameter.size as usize]),
+                body: payload_body(parameter.size as usize),
             }),
         }))
         .await
@@ -42,20 +56,27 @@ async fn send_responses(
 
 #[tonic::async_trait]
 impl TestService for BenchmarkService {
-    type StreamingOutputCallStream = Output;
-    type FullDuplexCallStream = Output;
+    type StreamingOutputCallStream = OutputStream;
+    type FullDuplexCallStream = BidiOutput;
 
     async fn streaming_output_call(
         &self,
         request: Request<StreamingOutputCallRequest>,
-    ) -> Result<Response<Output>, Status> {
-        let (tx, rx) = mpsc::channel(1);
-        tokio::spawn(async move {
-            if let Err(error) = send_responses(&tx, request.into_inner()).await {
-                let _ = tx.send(Err(error)).await;
+    ) -> Result<Response<OutputStream>, Status> {
+        let params = request.into_inner().response_parameters;
+        let mut responses = Vec::with_capacity(params.len());
+        for parameter in params {
+            if parameter.size < 0 {
+                return Err(Status::invalid_argument("negative response size"));
             }
-        });
-        Ok(Response::new(ReceiverStream::new(rx)))
+            responses.push(Ok(StreamingOutputCallResponse {
+                payload: Some(Payload {
+                    r#type: 0,
+                    body: payload_body(parameter.size as usize),
+                }),
+            }));
+        }
+        Ok(Response::new(tokio_stream::iter(responses)))
     }
 
     async fn streaming_input_call(
@@ -81,8 +102,8 @@ impl TestService for BenchmarkService {
     async fn full_duplex_call(
         &self,
         request: Request<tonic::Streaming<StreamingOutputCallRequest>>,
-    ) -> Result<Response<Output>, Status> {
-        let (tx, rx) = mpsc::channel(1);
+    ) -> Result<Response<BidiOutput>, Status> {
+        let (tx, rx) = mpsc::channel(32);
         tokio::spawn(async move {
             let mut stream = request.into_inner();
             loop {
@@ -113,7 +134,7 @@ impl TestService for BenchmarkService {
         Ok(Response::new(SimpleResponse {
             payload: Some(Payload {
                 r#type: 0,
-                body: Bytes::from(vec![0; response_size as usize]),
+                body: payload_body(response_size as usize),
             }),
         }))
     }

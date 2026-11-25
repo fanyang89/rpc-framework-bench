@@ -315,7 +315,7 @@ start_server() {
         taskset -c "$SERVER_CPU" "$ROOT/bin/tonic-server" >"$log_file" 2>&1 &
       ;;
     grpc-cpp)
-      taskset -c "$SERVER_CPU" "$ROOT/bin/cpp-server" \
+      SERVER_THREADS="$SERVER_THREADS" taskset -c "$SERVER_CPU" "$ROOT/bin/cpp-server" \
         "127.0.0.1:$port" >"$log_file" 2>&1 &
       ;;
     *)
@@ -539,13 +539,16 @@ run_case() {
 
 labels=(grpc-lite grpc-go tonic grpc-cpp)
 export CPP_API
+unset http_proxy https_proxy HTTP_PROXY HTTPS_PROXY all_proxy ALL_PROXY grpc_proxy
 if [[ $TLS == 1 ]]; then
   export TLS_CERT TLS_KEY
 else
   unset TLS_CERT TLS_KEY
 fi
+GRPC_GO_VERSION=${GRPC_GO_VERSION:-grpc-go/$(awk '$1 == "require" && $2 == "google.golang.org/grpc" {sub(/^v/, "", $3); print $3; exit} $1 == "google.golang.org/grpc" {sub(/^v/, "", $2); print $2; exit}' "$ROOT/go.mod")}
+TONIC_VERSION=${TONIC_VERSION:-tonic/$(awk -F'"' '/^tonic[[:space:]]*=/ {for (i=1; i<=NF; i++) if ($i ~ /^=[0-9]/) {sub(/^=/, "", $i); print $i; exit}}' "$ROOT/workloads/rust-tonic/Cargo.toml")}
 ports=("$GRPC_LITE_PORT" "$GRPC_GO_PORT" "$TONIC_PORT" "$GRPC_CPP_PORT")
-versions=("$GRPC_LITE_VERSION" grpc-go/1.82.1 tonic/0.14.6 "${GRPC_CPP_VERSION:-grpc-cpp/1.48.4}")
+versions=("$GRPC_LITE_VERSION" "$GRPC_GO_VERSION" "$TONIC_VERSION" "${GRPC_CPP_VERSION:-grpc-cpp/unknown}")
 
 for ((round = 1; round <= ROUNDS; round++)); do
   for ((offset = 0; offset < ${#labels[@]}; offset++)); do

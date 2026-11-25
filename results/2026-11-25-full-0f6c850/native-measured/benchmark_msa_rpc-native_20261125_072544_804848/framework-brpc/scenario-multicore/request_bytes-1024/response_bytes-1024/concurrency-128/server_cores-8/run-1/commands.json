@@ -1,0 +1,24 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "8,9,10,11,12,13,14,15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/native-build/brpc-native",
+    "server",
+    "26150",
+    "8"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/native-build/brpc-native",
+    "client",
+    "127.0.0.1:26150",
+    "128",
+    "1024",
+    "1024",
+    "1000",
+    "5000"
+  ]
+}

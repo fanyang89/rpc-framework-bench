@@ -46,13 +46,16 @@ int main(int argc, char** argv) {
       native_rpc::Request request;
       request.set_payload(std::string(config.request_size, '\0'));
       request.set_response_size(config.response_size);
-      return [channel, request, config] {
+      auto control = std::make_unique<brpc::Controller>();
+      auto response = std::make_unique<native_rpc::Response>();
+      return [channel, request, config, control = std::move(control),
+              response = std::move(response)]() mutable {
         native_rpc::Benchmark_Stub client(channel.get());
-        brpc::Controller control;
-        native_rpc::Response response;
-        client.Call(&control, &request, &response, nullptr);
-        if (control.Failed()) throw std::runtime_error(control.ErrorText());
-        load::validate(response.payload().size(), config.response_size);
+        control->Reset();
+        response->Clear();
+        client.Call(control.get(), &request, response.get(), nullptr);
+        if (control->Failed()) throw std::runtime_error(control->ErrorText());
+        load::validate(response->payload().size(), config.response_size);
       };
     });
   } catch (const std::exception& error) {
