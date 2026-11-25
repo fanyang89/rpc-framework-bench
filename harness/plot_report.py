@@ -257,9 +257,9 @@ def run_benchkit_chart(
         return out_png
 
 
-def export_extended_csv(dataset: Path) -> Path:
-    """Convert extended gRPC JSONL runs into a Benchkit semicolon CSV."""
-    ext_dir = dataset / "extended-measured"
+def export_extended_csv(dataset: Path, subdir: str = "extended-measured", out_name: str = "benchkit-extended.csv") -> Path:
+    """Convert extended/streaming gRPC JSONL runs into a Benchkit semicolon CSV."""
+    ext_dir = dataset / subdir
     rows = []
     for path in sorted(ext_dir.glob("*.jsonl")):
         if path.name.startswith("host-telemetry"):
@@ -288,7 +288,7 @@ def export_extended_csv(dataset: Path) -> Path:
                     "output/server_cpu_percent": r["server_cpu"]["utilization_percent"],
                 }
             )
-    csv_path = ext_dir / "benchkit-extended.csv"
+    csv_path = ext_dir / out_name
     pd.DataFrame(rows).to_csv(csv_path, sep=";", index=False)
     return csv_path
 
@@ -410,7 +410,12 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
         for idx, ax in enumerate(chart.axes.flat):
             ax.grid(axis="y", linestyle="--", alpha=0.55)
             ax.grid(axis="x", visible=False)
-            ax.set_ylim(0, 50 if idx == 0 else 74)
+            max_top = max(
+                (_bar_top_y(ax, bar) for container in ax.containers for bar in container),
+                default=40.0 if idx == 0 else 60.0,
+            )
+            step = 5.0 if idx == 0 else 10.0
+            ax.set_ylim(0, math.ceil((max_top * 1.24) / step) * step)
             for container in ax.containers:
                 bars = list(container)
                 if len(bars) >= 3:
@@ -650,7 +655,6 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
         ax.set_xticks([0, 1, 2])
         ax.set_xticklabels(["1 Server Core", "4 Server Cores", "8 Server Cores"], fontsize=10)
         ax.set_xlim(-0.10, 2.82)
-        ax.set_ylim(0, 1080)
         ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:.0f}k"))
         ax.grid(axis="y", linestyle="--", alpha=0.55)
         ax.grid(axis="x", linestyle=":", alpha=0.35)
@@ -660,12 +664,24 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
         raw = pd.read_csv(native_csv, sep=";", comment="#")
         raw.columns = [c.split("/", 1)[-1] for c in raw.columns]
         mc = raw[raw["scenario"] == "multicore"].groupby(["framework", "server_cores"])["ops_per_second"].median()
+        max_k = float(mc.max()) / 1000.0
+        y_upper = max(1080.0, math.ceil((max_k * 1.12) / 100.0) * 100.0)
+        ax.set_ylim(0, y_upper)
+        gl8 = raw[
+            (raw["scenario"] == "multicore")
+            & (raw["framework"] == "grpc-lite")
+            & (raw["server_cores"] == 8)
+        ]
+        gl_cli_cpu = float(gl8["client_cpu_percent"].median())
+        gl_srv_cpu = float(gl8["server_cpu_percent"].median())
+        client_limited = gl_cli_cpu > gl_srv_cpu * 1.4
+
         targets = []
         for fw in NATIVE_LABELS:
             c1 = mc[(fw, 1)]
             c8 = mc[(fw, 8)]
             ratio = c8 / c1
-            suffix = "*" if fw == "grpc-lite" else ""
+            suffix = "*" if (fw == "grpc-lite" and client_limited) else ""
             targets.append(
                 (
                     float(c8 / 1000.0),
@@ -673,7 +689,7 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
                     FRAMEWORK_PALETTE[NATIVE_LABELS[fw]],
                 )
             )
-        for y_pos, txt, color in _deconflict_y(targets, min_gap=46.0, y_min=60, y_max=1040):
+        for y_pos, txt, color in _deconflict_y(targets, min_gap=50.0, y_min=60, y_max=y_upper - 45):
             ax.text(2.06, y_pos, txt, fontsize=8.9, fontweight="bold", color=color, va="center")
         if ax.get_legend() is not None:
             ax.get_legend().remove()
@@ -687,18 +703,11 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
         )
         ax.set_xlabel("Server CPU Affinity Budget (Clients Pinned to Physical Cores 0–7)\n", labelpad=8)
         ax.set_ylabel("Throughput (k RPC/s)")
-        gl8 = raw[
-            (raw["scenario"] == "multicore")
-            & (raw["framework"] == "grpc-lite")
-            & (raw["server_cores"] == 8)
-        ]
-        gl_cli_cpu = float(gl8["client_cpu_percent"].median())
-        gl_srv_cpu = float(gl8["server_cpu_percent"].median())
-        _add_footnote(
-            ax.figure,
-            f"*grpc-lite 8-core client CPU {gl_cli_cpu:.0f}% vs server {gl_srv_cpu:.0f}% (client-limited)  |  Median of 3 × 5 s rounds; bands = min–max",
-            y=0.015,
-        )
+        if client_limited:
+            fn_text = f"*grpc-lite 8-core client CPU {gl_cli_cpu:.0f}% vs server {gl_srv_cpu:.0f}% (client-limited)  |  Median of 3 × 5 s rounds; bands = min–max"
+        else:
+            fn_text = "5 gRPC stacks driven by h2load (-m 1); Thrift/Cap'n Proto/brpc use native C++ clients  |  Median of 3 × 5 s rounds; bands = min–max"
+        _add_footnote(ax.figure, fn_text, y=0.015)
         return ax
 
     outputs.append(
@@ -889,12 +898,13 @@ def generate_native_charts(native_csv: Path, dest_dir: Path) -> list[Path]:
 
 
 def _detect_grpc_lite_label(dataset: Path) -> str:
-    env_file = dataset / "extended-measured" / "environment.json"
-    if env_file.is_file():
-        meta = json.loads(env_file.read_text())
-        ver = meta.get("versions", {}).get("GRPC_LITE_VERSION", "")
-        if ver:
-            return ver
+    for sub in ("h2load-measured", "streaming-measured", "extended-measured", "native-measured"):
+        env_file = dataset / sub / "environment.json"
+        if env_file.is_file():
+            meta = json.loads(env_file.read_text())
+            ver = meta.get("versions", {}).get("GRPC_LITE_VERSION", "")
+            if ver:
+                return ver
     return "grpc-lite"
 
 
@@ -1404,6 +1414,440 @@ def generate_tls_evolution_chart(tls_csv: Path, dest_dir: Path) -> Path:
     )
 
 
+def generate_streaming_chart(
+    ext_csv: Path, dest_dir: Path, stem: str = "09-grpc-streaming-plaintext-vs-tls"
+) -> Path:
+    """Generate the 6-panel gRPC streaming chart (Client-Stream, Server-Stream, Bidi)."""
+    mode_titles = {
+        "client-stream": "Client-Stream (16 req → 1 resp)",
+        "server-stream": "Server-Stream (1 req → 16 resp)",
+        "bidi": "Bidi Ping-Pong (16 exchanges)",
+    }
+
+    def prep_stream(dataframe: pd.DataFrame) -> pd.DataFrame:
+        sub = dataframe[dataframe["mode"].isin(mode_titles)].copy()
+        sub["Server"] = sub["server"].map(GRPC_EXT_LABELS)
+        sub["Mode"] = sub["mode"].map(mode_titles)
+        return sub
+
+    def style_stream(chart: sns.FacetGrid) -> sns.FacetGrid:
+        chart.figure.set_size_inches(14.8, 8.0)
+        chart.figure.set_dpi(200)
+        chart.set_titles("{row_name} | {col_name}", size=10.2, weight="bold", pad=6)
+        chart.set_axis_labels("", "Complete Streaming RPCs / s (k)")
+        col_ymax = [82, 66, 11.2]
+        for r_idx in range(2):
+            for c_idx in range(3):
+                ax = chart.axes[r_idx, c_idx]
+                ax.set_ylim(0, col_ymax[c_idx])
+                ax.yaxis.set_major_formatter(
+                    ticker.FuncFormatter(
+                        lambda v, _, c=c_idx: f"{v:.0f}k" if c < 2 else f"{v:.1f}k"
+                    )
+                )
+                ax.grid(axis="y", linestyle="--", alpha=0.55)
+                ax.grid(axis="x", visible=False)
+                for container in ax.containers:
+                    for bar in container:
+                        h = bar.get_height()
+                        if h > 0:
+                            top_y = _bar_top_y(ax, bar)
+                            fmt = f"{h:.1f}" if c_idx == 2 else f"{h:.0f}"
+                            ax.annotate(
+                                fmt,
+                                (bar.get_x() + bar.get_width() / 2, top_y),
+                                xytext=(0, 3),
+                                textcoords="offset points",
+                                ha="center",
+                                va="bottom",
+                                fontsize=7.9,
+                                fontweight="bold",
+                                color="#1E293B",
+                            )
+        sns.despine(fig=chart.figure)
+        if chart._legend is not None:
+            chart._legend.remove()
+        chart.figure.legend(
+            handles=_patch_handles(["Plaintext", "TLS"], TRANSPORT_PALETTE),
+            loc="lower center",
+            bbox_to_anchor=(0.5, 0.045),
+            ncol=2,
+            frameon=False,
+            fontsize=10.2,
+            columnspacing=2.2,
+        )
+        chart.figure.suptitle(
+            "gRPC Streaming Performance: Plaintext vs TLS (1 Server Core, 16 × 1 KiB Messages/RPC, C=32)",
+            y=0.985,
+            va="top",
+            fontsize=13.2,
+            fontweight="bold",
+            color="#0F172A",
+        )
+        _add_footnote(
+            chart.figure,
+            f"1 operation = complete streaming RPC (16 messages + half-close + OK status)  |  {FOOTNOTE_HOST}",
+            y=0.012,
+        )
+        chart.figure.subplots_adjust(left=0.055, right=0.985, bottom=0.16, hspace=0.33, wspace=0.15)
+        return chart
+
+    return run_benchkit_chart(
+        ext_csv,
+        dest_dir,
+        stem,
+        plot_name="catplot",
+        kind="bar",
+        x="Server",
+        y="ops_k",
+        hue="transport",
+        row="client",
+        col="Mode",
+        order=GRPC_EXT_ORDER,
+        hue_order=["Plaintext", "TLS"],
+        row_order=["Go Client", "Tonic Client"],
+        col_order=list(mode_titles.values()),
+        palette=TRANSPORT_PALETTE,
+        sharey=False,
+        estimator="median",
+        errorbar=("pi", 100),
+        err_kws={"linewidth": 1.0, "color": "#475569"},
+        title="",
+        process_dataframe=prep_stream,
+        process_chart=style_stream,
+    )
+
+
+def generate_h2load_suite_charts(
+    h2load_csv: Path,
+    dest_dir: Path,
+    grpc_lite_ver: str = "grpc-lite",
+    multicore_stem: str = "07-grpc-h2load-multicore-scaling",
+    payload_stem: str = "08-grpc-h2load-large-payloads-plaintext-vs-tls",
+    asym_stem: str = "09-grpc-h2load-asymmetric-plaintext-vs-tls",
+) -> list[Path]:
+    """Generate the neutral third-party h2load Benchkit charts (multicore, large payloads, asymmetric)."""
+    outputs: list[Path] = []
+    raw_all = pd.read_csv(h2load_csv, sep=";")
+    raw_all.columns = [c.split("/", 1)[-1] for c in raw_all.columns]
+    has_scenario = "scenario" in raw_all.columns
+
+    # A. Multicore 1 -> 2 -> 4 -> 8 cores (Plaintext & TLS)
+    raw_mc = raw_all[raw_all["scenario"] == "multicore"].copy() if has_scenario else raw_all.copy()
+    core_map = {1: 0, 2: 1, 4: 2, 8: 3}
+
+    def prep_h2load_mc(dataframe: pd.DataFrame) -> pd.DataFrame:
+        sub = dataframe[dataframe["scenario"] == "multicore"].copy() if "scenario" in dataframe.columns else dataframe.copy()
+        sub["Server"] = sub["server"].map(GRPC_EXT_SINGLELINE)
+        sub["core_idx"] = sub["server_cores"].map(core_map)
+        sub["ops_m"] = sub["ops_per_second"] / 1_000_000.0
+        return sub
+
+    def style_h2load_mc(chart: sns.FacetGrid) -> sns.FacetGrid:
+        chart.figure.set_size_inches(14.4, 6.5)
+        chart.figure.set_dpi(200)
+
+        max_m = float(raw_mc["ops_per_second"].max()) / 1_000_000.0
+        y_upper = max(2.8, math.ceil((max_m * 1.15) * 4.0) / 4.0)
+
+        med = raw_mc.groupby(["transport", "server", "server_cores"])["ops_per_second"].median()
+        transports = ["Plaintext", "TLS"]
+        plot_df = prep_h2load_mc(raw_mc)
+
+        for idx, ax in enumerate(chart.axes.flat):
+            transport = transports[idx]
+            ax.clear()
+            sub = plot_df[plot_df["transport"] == transport]
+            sns.lineplot(
+                data=sub,
+                x="core_idx",
+                y="ops_m",
+                hue="Server",
+                style="Server",
+                hue_order=GRPC_EXT_ORDER_SINGLELINE,
+                style_order=GRPC_EXT_ORDER_SINGLELINE,
+                palette=FRAMEWORK_PALETTE,
+                markers=FRAMEWORK_MARKERS,
+                dashes=False,
+                estimator="median",
+                errorbar=("pi", 100),
+                linewidth=2.4,
+                markersize=7.0,
+                legend=False,
+                ax=ax,
+            )
+            ax.set_title(
+                f"{transport} — 1 KiB Unary (h2load nghttp2/1.69.0)",
+                size=11.0,
+                weight="bold",
+                pad=8,
+            )
+            ax.set_xlabel("Server Cores (Client Cores Allocated)", labelpad=8)
+            ax.set_ylabel("Throughput (M req/s)" if idx == 0 else "")
+            ax.set_xticks([0, 1, 2, 3])
+            ax.set_xticklabels(
+                ["1 Core\n(12c cli)", "2 Cores\n(12c cli)", "4 Cores\n(12c cli)", "8 Cores\n(8c cli)"],
+                fontsize=9.3,
+            )
+            ax.set_xlim(-0.14, 4.78)
+            ax.set_ylim(0, y_upper)
+            ax.yaxis.set_major_formatter(
+                ticker.FuncFormatter(lambda v, _: f"{v:.1f}M" if v >= 1.0 else f"{v * 1000:.0f}k")
+            )
+            ax.grid(axis="y", linestyle="--", alpha=0.55)
+            ax.grid(axis="x", linestyle=":", alpha=0.35)
+
+            gl1 = float(med[(transport, "grpc-lite", 1)])
+            gl4 = float(med[(transport, "grpc-lite", 4)])
+            ax.annotate(
+                f"{gl4 / 1e6:.2f}M ({gl4 / gl1:.1f}×)",
+                (2.0, gl4 / 1e6),
+                xytext=(-8, 9),
+                textcoords="offset points",
+                ha="right",
+                va="bottom",
+                fontsize=8.6,
+                fontweight="bold",
+                color=FRAMEWORK_PALETTE["grpc-lite (Zig)"],
+            )
+
+            targets = []
+            for srv in ("grpc-lite", "tonic", "grpc-cpp-callback", "grpc-go", "grpc-cpp-sync"):
+                c1 = float(med[(transport, srv, 1)])
+                c8 = float(med[(transport, srv, 8)])
+                ratio = c8 / c1
+                val_str = f"{c8 / 1e6:.2f}M" if c8 >= 1_000_000 else f"{c8 / 1e3:.0f}k"
+                label = GRPC_EXT_SINGLELINE[srv]
+                targets.append((c8 / 1e6, f"{label}: {val_str} ({ratio:.1f}×)", FRAMEWORK_PALETTE[label]))
+            for y_pos, txt, color in _deconflict_y(targets, min_gap=0.16, y_min=0.15, y_max=y_upper - 0.12):
+                ax.text(3.08, y_pos, txt, fontsize=8.4, fontweight="bold", color=color, va="center")
+
+        sns.despine(fig=chart.figure)
+        if chart._legend is not None:
+            chart._legend.remove()
+        chart.figure.suptitle(
+            "Neutral Third-Party High-Load gRPC Scaling via h2load (1 → 2 → 4 → 8 Server Cores, 1 KiB Unary)",
+            y=0.985,
+            va="top",
+            fontsize=13.2,
+            fontweight="bold",
+            color="#0F172A",
+        )
+        _add_footnote(
+            chart.figure,
+            f"All 5 servers saturated at 92%–100% server core CPU (client headroom preserved)  |  {grpc_lite_ver}  |  Median of 3 × 5 s rounds; bands = min–max",
+            y=0.015,
+        )
+        chart.figure.subplots_adjust(left=0.055, right=0.985, bottom=0.17, wspace=0.10)
+        return chart
+
+    outputs.append(
+        run_benchkit_chart(
+            h2load_csv,
+            dest_dir,
+            multicore_stem,
+            plot_name="catplot",
+            kind="point",
+            x="core_idx",
+            y="ops_m",
+            hue="Server",
+            col="transport",
+            col_order=["Plaintext", "TLS"],
+            hue_order=GRPC_EXT_ORDER_SINGLELINE,
+            palette=FRAMEWORK_PALETTE,
+            title="",
+            process_dataframe=prep_h2load_mc,
+            process_chart=style_h2load_mc,
+        )
+    )
+
+    # B. Large Symmetric Payloads (64 KiB & 1 MiB, Plaintext vs TLS, 1 core)
+    if has_scenario and (raw_all["scenario"] == "payload").any():
+        def prep_h2load_payload(dataframe: pd.DataFrame) -> pd.DataFrame:
+            sub = dataframe[dataframe["scenario"] == "payload"].copy()
+            sub["Server"] = sub["server"].map(GRPC_EXT_LABELS)
+            sub["Payload"] = sub["request_bytes"].map(
+                {65536: "64 KiB Symmetric (24 conns × 8 streams)", 1048576: "1 MiB Symmetric (24 conns × 2 streams)"}
+            )
+            return sub
+
+        def style_h2load_payload(chart: sns.FacetGrid) -> sns.FacetGrid:
+            chart.figure.set_size_inches(13.2, 6.2)
+            chart.figure.set_dpi(200)
+            chart.set_titles("{col_name}", size=10.8, weight="bold", pad=6)
+            chart.set_axis_labels("", "Application Payload Bandwidth (MiB/s, Req + Resp)")
+            for ax in chart.axes.flat:
+                max_top = max(
+                    (_bar_top_y(ax, bar) for container in ax.containers for bar in container),
+                    default=3600.0,
+                )
+                ax.set_ylim(0, math.ceil((max_top * 1.22) / 500.0) * 500.0)
+                ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:,.0f}"))
+                ax.grid(axis="y", linestyle="--", alpha=0.55)
+                ax.grid(axis="x", visible=False)
+                for container in ax.containers:
+                    for bar in container:
+                        h = bar.get_height()
+                        if h > 0:
+                            top_y = _bar_top_y(ax, bar)
+                            ax.annotate(
+                                f"{h:,.0f}",
+                                (bar.get_x() + bar.get_width() / 2, top_y),
+                                xytext=(0, 4),
+                                textcoords="offset points",
+                                ha="center",
+                                va="bottom",
+                                fontsize=8.2,
+                                fontweight="bold",
+                                color="#1E293B",
+                            )
+            sns.despine(fig=chart.figure)
+            if chart._legend is not None:
+                chart._legend.remove()
+            chart.figure.legend(
+                handles=_patch_handles(["Plaintext", "TLS"], TRANSPORT_PALETTE),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.055),
+                ncol=2,
+                frameon=False,
+                fontsize=10.0,
+                columnspacing=2.2,
+            )
+            chart.figure.suptitle(
+                "gRPC Large Symmetric Payloads via h2load: Plaintext vs TLS (1 Server Core, 12 Client Cores)",
+                y=0.985,
+                va="top",
+                fontsize=13.2,
+                fontweight="bold",
+                color="#0F172A",
+            )
+            _add_footnote(chart.figure, f"All 5 servers at 100% server core CPU  |  {FOOTNOTE_HOST}", y=0.012)
+            chart.figure.subplots_adjust(left=0.075, right=0.98, bottom=0.21, wspace=0.14)
+            return chart
+
+        outputs.append(
+            run_benchkit_chart(
+                h2load_csv,
+                dest_dir,
+                payload_stem,
+                plot_name="catplot",
+                kind="bar",
+                x="Server",
+                y="payload_mib_s",
+                hue="transport",
+                col="Payload",
+                order=GRPC_EXT_ORDER,
+                hue_order=["Plaintext", "TLS"],
+                col_order=[
+                    "64 KiB Symmetric (24 conns × 8 streams)",
+                    "1 MiB Symmetric (24 conns × 2 streams)",
+                ],
+                palette=TRANSPORT_PALETTE,
+                estimator="median",
+                errorbar=("pi", 100),
+                err_kws={"linewidth": 1.1, "color": "#475569"},
+                title="",
+                process_dataframe=prep_h2load_payload,
+                process_chart=style_h2load_payload,
+            )
+        )
+
+    # C. Asymmetric Payloads (64 B -> 64 KiB & 64 KiB -> 64 B, Plaintext vs TLS, 1 core)
+    if has_scenario and (raw_all["scenario"] == "asymmetric").any():
+        def prep_h2load_asym(dataframe: pd.DataFrame) -> pd.DataFrame:
+            sub = dataframe[dataframe["scenario"] == "asymmetric"].copy()
+            sub["Server"] = sub["server"].map(GRPC_EXT_LABELS)
+            sub["Direction"] = np.where(
+                sub["request_bytes"] < sub["response_bytes"],
+                "Small Req → Large Resp (64 B → 64 KiB)",
+                "Large Req → Small Resp (64 KiB → 64 B)",
+            )
+            return sub
+
+        def style_h2load_asym(chart: sns.FacetGrid) -> sns.FacetGrid:
+            chart.figure.set_size_inches(13.2, 6.2)
+            chart.figure.set_dpi(200)
+            chart.set_titles("{col_name}", size=10.8, weight="bold", pad=6)
+            chart.set_axis_labels("", "Throughput (k req/s)")
+            for ax in chart.axes.flat:
+                max_top = max(
+                    (_bar_top_y(ax, bar) for container in ax.containers for bar in container),
+                    default=58.0,
+                )
+                ax.set_ylim(0, math.ceil((max_top * 1.22) / 10.0) * 10.0)
+                ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda v, _: f"{v:.0f}k"))
+                ax.grid(axis="y", linestyle="--", alpha=0.55)
+                ax.grid(axis="x", visible=False)
+                for container in ax.containers:
+                    for bar in container:
+                        h = bar.get_height()
+                        if h > 0:
+                            top_y = _bar_top_y(ax, bar)
+                            ax.annotate(
+                                f"{h:.1f}k",
+                                (bar.get_x() + bar.get_width() / 2, top_y),
+                                xytext=(0, 4),
+                                textcoords="offset points",
+                                ha="center",
+                                va="bottom",
+                                fontsize=8.2,
+                                fontweight="bold",
+                                color="#1E293B",
+                            )
+            sns.despine(fig=chart.figure)
+            if chart._legend is not None:
+                chart._legend.remove()
+            chart.figure.legend(
+                handles=_patch_handles(["Plaintext", "TLS"], TRANSPORT_PALETTE),
+                loc="lower center",
+                bbox_to_anchor=(0.5, 0.055),
+                ncol=2,
+                frameon=False,
+                fontsize=10.0,
+                columnspacing=2.2,
+            )
+            chart.figure.suptitle(
+                "gRPC Asymmetric Payloads via h2load: Plaintext vs TLS (1 Server Core, 24 Conns × 8 Streams)",
+                y=0.985,
+                va="top",
+                fontsize=13.2,
+                fontweight="bold",
+                color="#0F172A",
+            )
+            _add_footnote(chart.figure, f"All 5 servers at 100% server core CPU  |  {FOOTNOTE_HOST}", y=0.012)
+            chart.figure.subplots_adjust(left=0.07, right=0.98, bottom=0.21, wspace=0.14)
+            return chart
+
+        outputs.append(
+            run_benchkit_chart(
+                h2load_csv,
+                dest_dir,
+                asym_stem,
+                plot_name="catplot",
+                kind="bar",
+                x="Server",
+                y="ops_k",
+                hue="transport",
+                col="Direction",
+                order=GRPC_EXT_ORDER,
+                hue_order=["Plaintext", "TLS"],
+                col_order=[
+                    "Small Req → Large Resp (64 B → 64 KiB)",
+                    "Large Req → Small Resp (64 KiB → 64 B)",
+                ],
+                palette=TRANSPORT_PALETTE,
+                estimator="median",
+                errorbar=("pi", 100),
+                err_kws={"linewidth": 1.1, "color": "#475569"},
+                title="",
+                process_dataframe=prep_h2load_asym,
+                process_chart=style_h2load_asym,
+            )
+        )
+
+    return outputs
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -1425,12 +1869,35 @@ def main() -> None:
     dest = args.output.resolve()
 
     native_csv = next((dataset / "native-measured").glob("benchmark_*.csv"))
-    ext_csv = export_extended_csv(dataset)
     grpc_lite_ver = _detect_grpc_lite_label(dataset)
+    h2load_csv = dataset / "h2load-measured" / "benchkit-h2load.csv"
+    has_extended = (dataset / "extended-measured").is_dir()
+    has_streaming = (dataset / "streaming-measured").is_dir()
 
     generated: list[Path] = []
     generated.extend(generate_native_charts(native_csv, dest))
-    generated.extend(generate_extended_charts(ext_csv, dest, grpc_lite_ver=grpc_lite_ver))
+    if has_extended:
+        ext_csv = export_extended_csv(dataset, "extended-measured", "benchkit-extended.csv")
+        generated.extend(generate_extended_charts(ext_csv, dest, grpc_lite_ver=grpc_lite_ver))
+        if h2load_csv.is_file():
+            generated.extend(
+                generate_h2load_suite_charts(
+                    h2load_csv,
+                    dest,
+                    grpc_lite_ver=grpc_lite_ver,
+                    multicore_stem="11-grpc-h2load-multicore-scaling",
+                    payload_stem="12-grpc-h2load-large-payloads-plaintext-vs-tls",
+                    asym_stem="13-grpc-h2load-asymmetric-plaintext-vs-tls",
+                )
+            )
+    else:
+        if h2load_csv.is_file():
+            generated.extend(generate_h2load_suite_charts(h2load_csv, dest, grpc_lite_ver=grpc_lite_ver))
+        if has_streaming:
+            stream_csv = export_extended_csv(dataset, "streaming-measured", "benchkit-streaming.csv")
+            generated.append(
+                generate_streaming_chart(stream_csv, dest, stem="10-grpc-streaming-plaintext-vs-tls")
+            )
     if (dataset / "tls" / "measured").is_dir():
         tls_csv = export_tls_csv(dataset)
         generated.append(generate_tls_evolution_chart(tls_csv, dest))

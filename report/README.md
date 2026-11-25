@@ -1,66 +1,57 @@
 # RPC Framework Performance Report
 
-> **Campaign:** [`2026-11-25-full-0f6c850`](../results/2026-11-25-full-0f6c850/README.md) &nbsp;|&nbsp; **Formal Runs:** 780 (+ 260 smoke) &nbsp;|&nbsp; **Completed RPCs:** 474,043,546 &nbsp;|&nbsp; **Errors:** 0
+> **Campaign:** [`2026-11-25-h2load-0f6c850`](../results/2026-11-25-h2load-0f6c850/README.md) &nbsp;|&nbsp; **Formal Runs:** 780 (+ 260 smoke) &nbsp;|&nbsp; **Completed RPCs:** 524,313,126 &nbsp;|&nbsp; **Errors:** 0
 >
 > **Host:** AMD Ryzen 9 9955HX (16 physical cores / 32 threads, `performance` governor, Linux x86_64, localhost TCP)  
+> **Primary gRPC Load Generator:** Off-the-shelf **`h2load` (`nghttp2/1.69.0`)** for all Unary scenarios (zero custom client bias, 92%–100% server saturation); Go (`1.83.2`) & Tonic (`0.14.6`) clients for Streaming; native C++ clients for Thrift, Cap'n Proto, and brpc.  
 > **Charts:** Generated via [Benchkit](https://github.com/open-s4c/benchkit) (`benchkit.lwchart`) in both PNG and vector PDF — see [`harness/plot_report.py`](../harness/plot_report.py) to regenerate.
 
 ---
 
 ## Executive Summary
 
-This report evaluates **8 RPC server stacks** on the post-fix benchmark suite with **`grpc-lite` updated to `0f6c850`** (OpenSSL 4.0.3) and **`gRPC-Go` on `1.83.2`**, across two independent, zero-error benchmark matrices on the same machine:
+This report evaluates **8 RPC server stacks** (`grpc-lite 0f6c850` with OpenSSL 4.0.3, `Tonic 0.14.6`, `gRPC C++ 1.84.3` callback & sync, `gRPC-Go 1.83.2`, `Apache Thrift 0.25.0`, `Cap'n Proto 1.5.0`, and `brpc 1.18.0`) using neutral third-party **`h2load` (`nghttp2/1.69.0`)** across all gRPC Unary matrices so fast servers are never capped by Go, Tonic, or blocking C++ client CPU ceilings:
 
-1. **Native Cross-Protocol Matrix (360 formal runs, 192.7M RPCs):** Plaintext closed-loop C++ clients comparing **Apache Thrift**, **Cap'n Proto**, **brpc (`baidu_std`)**, **grpc-lite (`0f6c850`)**, **Tonic**, **gRPC C++ (callback)**, **gRPC C++ (sync)**, and **gRPC-Go** across latency, concurrency, multicore scaling, large payloads, and asymmetric payloads.
-2. **Extended gRPC Matrix (420 formal runs, 281.4M RPCs):** Five gRPC server configurations tested with both **gRPC-Go (`1.83.2`)** and **Tonic (`0.14.6`)** multi-process load generators across **Plaintext vs. certificate-verified TLS**, **1 / 4 / 8 server cores**, **1 KiB vs. 64 KiB**, and **all 4 RPC modes** (unary, client-stream, server-stream, bidi ping-pong).
+1. **Part 1 — Cross-Protocol Plaintext Matrix (360 formal runs, 216.8M RPCs):** 8 frameworks compared under identical **1-connection-per-worker (`-m 1`)** closed-loop topology (`Thrift`, `Cap'n Proto`, `brpc` on native C++ clients; all 5 gRPC servers on `h2load -m 1`) across latency (`0 B / 64 B / 1 KiB`), concurrency (`C = 1 → 128`), multicore (`1 / 4 / 8` cores), large payloads (`1 KiB / 64 KiB / 1 MiB`), and asymmetric payloads (`64 B ↔ 64 KiB`).
+2. **Part 2 — Multiplexed gRPC Plaintext vs. TLS Matrix via `h2load` (240 formal runs, 286.7M RPCs):** All 5 gRPC servers driven to **92%–100% server core saturation** across `1 / 2 / 4 / 8` server cores (`12` client cores for `1–4c`, `8` client cores for `8c`, `-m 16`), large symmetric payloads (`64 KiB`, `1 MiB`), and asymmetric payloads (`64 B ↔ 64 KiB`) in both Plaintext (`h2c`) and TLS (`h2`).
+3. **Part 3 — gRPC Streaming Matrix (180 formal runs, 20.9M RPCs):** All 5 gRPC servers tested across `client-stream`, `server-stream`, and `bidi` ping-pong (`16 × 1 KiB`/RPC, Plaintext & TLS) using Go (`1.83.2`) and Tonic (`0.14.6`) dual-process load generators (since `h2load` only supports HTTP/2 unary).
 
 ### Headline Findings
 
 | Dimension | Winner in This Setup | Headline Metric (Median of 3 × 5 s Rounds) | Key Takeaway |
 | --- | --- | --- | --- |
-| **Lowest 1 KiB Latency (C=1, 1 core)** | **Apache Thrift** | **15.5 µs** P50 / **21.6 µs** P99 | Non-HTTP/2 binary protocols (`Thrift`, `Cap'n Proto`, `brpc`) run at roughly half the latency of gRPC stacks. |
-| **Fastest gRPC Latency (C=1, 1 core)** | **grpc-lite (Zig)** | **29.8 µs** P50 / **40.3 µs** P99 | Leads all gRPC stacks by 17%–27% on median RTT. |
-| **Peak 8-Core Plaintext Throughput (Native)** | **Apache Thrift** | **984.2k RPC/s** (7.68× scaling) | Followed by `Cap'n Proto` (765k) and `brpc` (637k). `grpc-lite` leads gRPC (425k) before hitting a C++ client CPU ceiling. |
-| **1-Core gRPC Unary (Plaintext / TLS)** | **grpc-lite (Zig)** | **434.9k / 345.8k RPC/s** (Go client) | **4.7×** Tonic in plaintext and **4.1×** Tonic over TLS with OpenSSL 4.0.3 (`407.4k / 271.7k` with Tonic client). |
-| **Large Symmetric 1 MiB Payload (1 core)** | **Cap'n Proto** | **7,166 MiB/s** (`3,583` RPC/s, `11.1 ms` P99) | `Cap'n Proto` leads all stacks by +62%; `Tonic` leads gRPC at **4,214 MiB/s** (`21.9 ms` P99); `grpc-lite 0f6c850` rose +17% to `3,022 MiB/s` (`25.7 ms` P99). |
-| **gRPC Server-Streaming (1 core, 16×1 KiB)** | **Tonic (Rust)** | **44.8k / 54.2k** PT · **38.7k / 43.6k** TLS | After removing the artificial `mpsc::channel(1)` + `tokio::spawn` bug, **Tonic jumps ~6× to #1 overall**, edging past `grpc-lite` (`44.4k / 47.7k` PT, `37.3k / 34.6k` TLS). |
-| **gRPC Client-Streaming & Bidi (1 core)** | **grpc-lite (Zig)** / **Tonic** / **gRPC-Go** | **68.6k** client-stream · **8.7k** bidi (Tonic client) | `grpc-lite` leads Go-client client-stream (`68.6k / 46.3k`) and Tonic-client bidi (`8.68k / 6.94k`); `Tonic` leads Tonic-client TLS client-stream (`47.5k`); `gRPC-Go` leads Go-client bidi (`5.80k / 5.39k`). |
-| **gRPC C++ Sync vs. Callback API** | **Workload-dependent** | Native 8c: **sync +8.9%** (`374k` vs `344k`) · Extended 8c: **callback +21–36%** | Properly applying `SERVER_THREADS` lifted C++ sync +28% on native 8 cores (`801 µs` P99 vs `1,364 µs` callback); C++ callback still dominates multiplexed extended unary (`429k` PT / `398k` TLS) and 64 KiB Tonic-client unary (`27.5k` / `17.7k`). |
+| **Lowest 1 KiB Latency (C=1, 1 core, `-m 1`)** | **Apache Thrift** / **grpc-lite** | **15.6 µs** / **16.0 µs** P50 (`21.3 / 22.0 µs` P99) | Removing blocking C++ gRPC client overhead (`~14 µs`) puts **`grpc-lite` in a virtual tie with raw framed binary Thrift** and ahead of Cap'n Proto (`17.6 µs`) and brpc (`20.9 µs`). |
+| **Peak 8-Core Plaintext (`C=128`, `-m 1`)** | **grpc-lite (Zig)** | **1,069,242 RPC/s** (`8.13×`, **`159 µs`** P99) | Even without HTTP/2 multiplexing (`-m 1`), **`grpc-lite` surpasses 1M RPC/s and beats Apache Thrift (`983.6k`, `226 µs` P99), Cap'n Proto (`771.5k`), and brpc (`637.2k`)**. |
+| **Multiplexed gRPC Multicore (`h2load`, 4c / 8c)** | **grpc-lite (Zig)** | **1.80M / 2.48M** PT · **1.53M / 2.18M** TLS | Scales **3.93× on 4 cores** and reaches **2.48M PT / 2.18M TLS on 8 cores** (**4.1× / 3.9×** Tonic at `604k / 552k`) with **`1.35–2.86 ms` P99** under 1,536 in-flight streams. |
+| **Large Symmetric 64 KiB / 1 MiB (8 Frameworks, `-m 1`)** | **Apache Thrift** | **5,214 MiB/s** (64 KiB) · **4,441 MiB/s** (1 MiB) | Non-HTTP/2 binary protocols (`Thrift`, `brpc`, `Cap'n Proto`) lead bulk plaintext bandwidth; among gRPC stacks, `grpc-lite` leads 64 KiB (`3,004 MiB/s`) while `gRPC-Go` / `C++ callback` lead 1 MiB (`3,314 / 3,209 MiB/s`). |
+| **Large Symmetric 64 KiB / 1 MiB gRPC (`h2load`, PT & TLS)** | **gRPC C++ (callback)** | **3,431 / 2,329 MiB/s** (64 KiB) · **3,595 / 2,262 MiB/s** (1 MiB) | `C++ callback` leads throughput on both 64 KiB and 1 MiB in PT & TLS; `Tonic` takes #2 in TLS (`2,049 / 2,206 MiB/s`), while `grpc-lite` delivers **4×–7× tighter P99** (`9–14 ms` @ 64 KiB, `34–51 ms` @ 1 MiB vs `75–362 ms` for C++/Go). |
+| **Asymmetric 64 B ↔ 64 KiB gRPC (`h2load`, PT & TLS)** | **grpc-lite** (Resp) / **Tonic** (Req) | **47.0k** PT (`64B→64K`) · **57.2k / 38.6k** (`64K→64B`) | `grpc-lite` leads large-response PT (`47.0k`) and ties `C++ callback` in TLS (`28.3k` vs `29.3k`, 9× tighter P99); **`Tonic` dominates large-request ingestion** in both PT (`57.2k`) and TLS (`38.6k`). |
+| **gRPC Server-Streaming (1 core, 16×1 KiB)** | **Tonic (Rust)** | **44.7k / 53.1k** PT · **39.1k / 43.9k** TLS | Leads all 4 client/transport cells ahead of `grpc-lite` (`44.5k / 48.0k` PT, `37.5k / 34.5k` TLS) and `gRPC-Go` (`39.0k / 36.9k` PT, `31.0k / 29.7k` TLS). |
+| **gRPC Client-Streaming & Bidi (1 core, 16×1 KiB)** | **grpc-lite** / **Tonic** / **gRPC-Go** | **68.4k** client-stream · **8.80k** bidi (Tonic cli) | `grpc-lite` leads Go-client client-stream (`68.4k / 47.7k`) and Tonic-client bidi (`8.80k / 6.98k`); `Tonic` leads Tonic-client TLS client-stream (`47.7k`); `gRPC-Go` leads Go-client bidi (`5.83k / 5.40k`). |
 
-> **Scope reminder:** The native and extended matrices use different client implementations and connection topologies. **Compare frameworks within each matrix**, not by mixing numbers across matrices. Closed-loop localhost runs measure end-to-end client+server stacks, not universal isolated server ceilings.
-
----
-
-## What Changed After Fixing Benchmark Bugs & Updating `grpc-lite`
-
-All pre-`2026-11-25` datasets and reports were **archived and marked invalidated（作废）** (see [`report/archive/2026-11-21-invalidated/README.md`](archive/2026-11-21-invalidated/README.md) and [`results/README.md`](../results/README.md)) after a full code audit uncovered implementation defects in `workloads/` and `harness/`. Fixing those defects and upgrading `grpc-lite` (`af19148` → `0f6c850`) + `grpc-go` (`1.82.1` → `1.83.2`) produced dramatic, physically grounded shifts:
-
-| Area | Fix / Upgrade Applied | Observed Impact in `2026-11-25-full-0f6c850` |
-| --- | --- | --- |
-| **Tonic `server-stream` & `bidi`** | Removed per-RPC `tokio::spawn` + `mpsc::channel(1)` in [`workloads/rust-tonic/src/main.rs`](../workloads/rust-tonic/src/main.rs) (now returns `tokio_stream::iter(...)` directly); raised `full_duplex_call` channel capacity to 32; shared static `ZERO_PAYLOAD`. | Tonic `server-stream` jumped **~6×** (from ~`7.5k–8.9k` to **`44.8k / 54.2k`** Plaintext and **`38.7k / 43.6k`** TLS), moving from last place to **#1 overall**. |
-| **Cap'n Proto `SO_REUSEPORT` race** | Pre-created, bound, and called `listen()` on all `SO_REUSEPORT` sockets (with `SO_REUSEADDR` + `TCP_NODELAY`) before spawning workers in [`workloads/native-cpp/capnp.cc`](../workloads/native-cpp/capnp.cc). | Eliminated connection skew at startup: asymmetric spread dropped from **29% → 1.4%**, 1 MiB spread dropped from **34% → 8.4%**, and 1 MiB bandwidth jumped to **7,166 MiB/s** (`11.1 ms` P99). |
-| **gRPC C++ `SERVER_THREADS` tuning** | Honored `SERVER_THREADS` via `SetSyncServerOption(NUM_CQS / MIN_POLLERS / MAX_POLLERS)` and callback `ResourceQuota::SetMaxThreads` in [`workloads/cpp-grpc/server.cc`](../workloads/cpp-grpc/server.cc) and [`harness/run.sh`](../harness/run.sh); hoisted streaming response objects; added clean `SIGINT`/`SIGTERM` shutdown. *(Note: `WriteOptions::set_buffer_hint()` was intentionally NOT enabled because corking a synchronous or single-in-flight reactor write deadlocks waiting for its own flush.)* | Native 8-core `gRPC C++ (sync)` jumped **+28%** (`291k → 374.2k RPC/s`, `6.00×` scaling, `801 µs` P99), overtaking `C++ callback` on the 1-conn/worker native 8-core test; C++ callback `C=128` 1-core P99 improved from `13.5 ms → 11.2 ms`. |
-| **Unbiased timing & O(1) histograms** | Unified across [`go/client/main.go`](../workloads/go/client/main.go), [`rust-tonic/src/bin/bench_client.rs`](../workloads/rust-tonic/src/bin/bench_client.rs), and [`native-cpp/load.h`](../workloads/native-cpp/load.h): eager connect, synchronized monotonic post-warmup barrier, single `Clock::now()` per RPC, O(1) zero-allocation log-linear latency histogram (8-bit mantissa, `<0.4%` error), and unbiased per-worker active-time throughput `sum(completed_i / active_seconds_i)`. | Eliminated post-measurement multi-million-sample sort pauses (which previously diluted `server_cpu_percent`) and straggler-tail denominator bias. Median run-to-run spread across all 260 formal cases is now **1.30%** (native) and **1.13%** (extended). |
-| **Per-RPC allocations & proxy safety** | Shared read-only 1 MiB zero payload in [`go/server/main.go`](../workloads/go/server/main.go); reused response/controller objects in C++ native clients; disabled HTTP proxy interception (`grpc.enable_http_proxy = 0` + unset proxy env vars); allocated native ports from `26051–26999`; fixed multi-socket CPU topology check. | Cleaner server memory profiles and zero proxy/TIME_WAIT interference across all 780 runs. |
-| **`grpc-lite 0f6c850` & `grpc-go 1.83.2`** | Upgraded `grpc-lite` to latest `main` (`0f6c850`, OpenSSL 4.0.3, Zig 0.17.0) and recorded actual `grpc-go/1.83.2` from `go.mod`. | `grpc-lite` improved **+17.2%** on 1 MiB symmetric (`2,579 → 3,022 MiB/s`) and **+14.8%** on 64 KiB Tonic-client Plaintext (`20.9k → 24.0k`); `gRPC-Go 1.83.2` improved across 1-core unary (`73.5k → 78.2k` PT / `72.8k → 75.9k` TLS) and server-stream (`31.2k → 38.7k` Go / `29.9k → 36.7k` Tonic). |
+> **Why switching gRPC Unary to neutral `h2load` mattered:** In our earlier post-fix run ([`2026-11-25-full-0f6c850`](../results/2026-11-25-full-0f6c850/README.md)), blocking C++ `grpc-native` added ~`14 µs` of client-side RTT overhead and capped 8-core `grpc-lite` at `425k`, while Go/Tonic clients saturated all 8 client cores (`778%–784% / 800%`) and capped `grpc-lite` at `589k–606k` (and even clipped `Tonic` at `428k`). Replacing those clients with neutral, off-the-shelf **`h2load` (`nghttp2/1.69.0`)** removes client-side bottlenecks without using `grpc-lite`'s own client.
 
 ---
 
 ## Testbed & Methodology
 
-### Hardware & Isolation
+### Hardware, Isolation & Validation
 
 - **CPU:** AMD Ryzen 9 9955HX — 16 physical cores / 32 threads, `performance` scaling governor verified on CPUs `0–15`.
-- **Core pinning:** Clients pinned to physical cores `0–7` (two processes on `0–3` and `4–7` in the extended matrix); servers pinned to distinct physical cores `15` (1 core), `12–15` (4 cores), or `8–15` (8 cores).
-- **Measurement protocol:** Every formal configuration runs **3 repetitions × 5 seconds** after warmup (1 s native, 2 s extended) synchronized across all workers via a monotonic-clock barrier. Throughput is computed as unbiased per-worker active-time throughput `sum(completed_i / active_seconds_i)`. All reported values are **round medians**; shaded bands and whiskers in every Benchkit chart show the **full observed min–max range** across the 3 rounds. Zero RPC or response-length validation errors occurred across all 474,043,546 calls.
-- **No compression, retries, reflection, or request logging.** Payloads are zero-filled and response lengths (plus streaming message counts and aggregate bytes) are validated on every call.
+- **Core pinning:**
+  - **Part 1 (Native + `h2load -m 1`):** Clients pinned to physical cores `0–7`; servers pinned to `15` (1c), `12–15` (4c), or `8–15` (8c).
+  - **Part 2 (Multiplexed `h2load`):** `1 / 2 / 4` server cores (`15`, `14–15`, `12–15`) paired with **12 client cores (`0–11`)**; `8` server cores (`8–15`) paired with **8 client cores (`0–7`)**.
+  - **Part 3 (Streaming):** Two load-generator processes on `0–3` and `4–7`; server pinned to `15`.
+- **Strict zero-error & wire-level validation:** Before every `h2load` run, a pre-flight `curl` HTTP/2 call verifies `HTTP/2 200`, trailer `grpc-status: 0`, and exact Protobuf response byte length (with CA verification on `localhost` for TLS). Every `h2load` run requires `0 failed / 0 errored / 0 timeout`, zero non-`2xx` status codes, and full aggregate byte counts. All native C++ and Go/Tonic streaming clients validate exact response lengths, streaming message counts, aggregate bytes, and terminal `OK` status on every RPC.
+- **Measurement protocol:** Every formal configuration runs **3 repetitions × 5 seconds** after warmup (`1 s` Part 1, `2 s` Parts 2 & 3). All tables report **round medians**; every Benchkit chart displays the **full observed min–max range**. Median three-round spread is **1.15%** (Part 1), **1.62%** (Part 2), and **0.75%** (Part 3).
 
 ### Tested Software Versions
 
 | Stack | Protocol / API | Version / Commit | Runtime / Build Notes |
 | --- | --- | --- | --- |
+| **`h2load` (Unary Client)** | HTTP/2 + gRPC wire | `nghttp2/1.69.0` | System Fedora 45 package, OpenSSL 4.0.3 |
 | **Apache Thrift** | Binary / Framed | `0.25.0` | C++17 Release, nonblocking I/O threads |
-| **Cap'n Proto** | Two-party RPC | `1.5.0` | C++17 Release, 1 event loop/thread + pre-bound `SO_REUSEPORT` (`TCP_NODELAY`) |
+| **Cap'n Proto** | Two-party RPC | `1.5.0` | C++17 Release, pre-bound `SO_REUSEPORT` (`TCP_NODELAY`) |
 | **brpc** | `baidu_std` | `1.18.0` | C++17 Release, system protobuf + OpenSSL 4 patch |
 | **grpc-lite** | gRPC / HTTP/2 | `0f6c850` (Zig 0.17.0) | `ReleaseFast`, `-Dtls=true` (OpenSSL 4.0.3) + interop patch |
 | **Tonic** | gRPC / HTTP/2 | `0.14.6` (Rust 1.100.0) | Tokio `1.53.1`, `tls-ring`, Release (`--locked`) |
@@ -69,9 +60,9 @@ All pre-`2026-11-25` datasets and reports were **archived and marked invalidated
 
 ---
 
-## Part 1 — Cross-Protocol Plaintext Comparison (8 Frameworks)
+## Part 1 — Cross-Protocol Plaintext Comparison (8 Frameworks, `-m 1`)
 
-All 8 server configurations are driven by a unified closed-loop C++ load-driver harness ([`harness/campaign_native.py`](../harness/campaign_native.py), managed by Benchkit). Each concurrent worker runs on its own native thread with a dedicated persistent connection (no accidental cross-worker multiplexing). All 5 gRPC servers share the exact same C++ gRPC client binary (`grpc-native`); Thrift, Cap'n Proto, and brpc use their native C++ clients under the same [`load.h`](../workloads/native-cpp/load.h) driver contract.
+All 8 frameworks run under an identical **1-connection-per-worker closed-loop topology** ([`harness/campaign_native.py`](../harness/campaign_native.py), managed by Benchkit): `Apache Thrift`, `Cap'n Proto`, and `brpc` use their native C++ clients (`1` thread / `1` socket per worker), while all 5 gRPC servers use neutral **`h2load` (`nghttp2/1.69.0`) with strict `-m 1`** (`1` in-flight RPC per TCP connection, `-t min(8, C) -c C -m 1`).
 
 ### 1.1 Single-Request Latency (`C = 1`, 1 Server Core)
 
@@ -79,18 +70,18 @@ All 8 server configurations are driven by a unified closed-loop C++ load-driver 
 
 | Stack | 0 B P50 (µs) | 64 B P50 (µs) | 1 KiB P50 (µs) | 1 KiB P95 (µs) | 1 KiB P99 (µs) | 1 KiB RPC/s |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| **Apache Thrift** | 14.8 | 15.2 | **15.5** | 18.6 | **21.6** | 63,218 |
-| **Cap'n Proto** | 17.1 | 17.1 | **17.5** | 20.7 | **23.2** | 55,891 |
-| **brpc (`baidu_std`)** | 20.2 | 20.5 | **20.8** | 24.4 | **28.0** | 47,215 |
-| **grpc-lite (Zig)** | 29.0 | 29.2 | **29.8** | 33.5 | **40.3** | 32,952 |
-| **Tonic (Rust)** | 32.2 | 32.3 | **36.1** | 40.7 | **47.5** | 27,250 |
-| **gRPC-Go** | 37.8 | 37.9 | **38.1** | 44.2 | **67.8** | 25,433 |
-| **gRPC C++ (callback)** | 37.8 | 38.3 | **39.6** | 46.5 | **54.4** | 24,749 |
-| **gRPC C++ (sync)** | 39.3 | 39.8 | **40.8** | 46.6 | **54.9** | 23,939 |
+| **Apache Thrift** | **14.9** | **15.1** | **15.6** | **18.8** | **21.3** | **62,772** |
+| **grpc-lite (Zig)** | 16.0 | 16.0 | **16.0** | 20.0 | **22.0** | 55,140 |
+| **Cap'n Proto** | 16.9 | 17.2 | 17.6 | 20.9 | 23.5 | 55,424 |
+| **brpc (`baidu_std`)** | 20.4 | 20.5 | 20.9 | 24.8 | 28.9 | 46,861 |
+| **Tonic (Rust)** | 19.0 | 19.0 | 22.0 | 25.0 | 29.0 | 41,084 |
+| **gRPC-Go (`1.83.2`)** | 22.0 | 22.0 | 22.0 | 26.0 | 44.0 | 40,476 |
+| **gRPC C++ (callback)** | 23.0 | 23.0 | 24.0 | 32.0 | 36.0 | 37,352 |
+| **gRPC C++ (sync)** | 26.0 | 26.0 | 27.0 | 30.0 | 35.0 | 34,753 |
 
 **Observations:**
-- Wire protocol framing dominates small-message RTT: moving from 0 B to 1 KiB adds only `0.3–3.9 µs`, whereas the baseline gap between Thrift (`15.5 µs`) and HTTP/2+gRPC (`29.8–40.8 µs`) is ~2×.
-- Among the five gRPC stacks (all measured with the identical C++ gRPC client), **`grpc-lite` is the fastest** at `29.8 µs` P50 / `40.3 µs` P99, leading Tonic by `6.3 µs` and gRPC C++ / Go by `8.3–11.0 µs`.
+- **HTTP/2 + gRPC does NOT inherently cost 2× latency:** once blocking C++ gRPC client overhead is removed, **`grpc-lite` hits `16.0 µs` P50 / `22.0 µs` P99** — matching `Apache Thrift` (`15.6 / 21.3 µs`) within `0.4 µs` and beating `Cap'n Proto` (`17.6 / 23.5 µs`) and `brpc` (`20.9 / 28.9 µs`)!
+- Every gRPC server dropped by `~13.8–15.6 µs` vs. the legacy sync `grpc-native` client: `Tonic` and `gRPC-Go` both achieve `22.0 µs` P50 (with `Tonic` holding a much tighter `29.0 µs` P99 vs `44.0 µs` for Go), while `gRPC C++ callback` (`24.0 µs`) edges out `sync` (`27.0 µs`).
 
 ---
 
@@ -102,169 +93,174 @@ All 8 server configurations are driven by a unified closed-loop C++ load-driver 
 
 | Stack | C=1 (k RPC/s) | C=8 (k RPC/s) | C=32 (k RPC/s) | C=128 (k RPC/s) | C=128 P50 (µs) | C=128 P99 (µs) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| **grpc-lite (Zig)** | 33.0 | 123.1 | **134.0** | **134.3** | **946** | 1,122 |
-| **Cap'n Proto** | 56.2 | **135.1** | 130.7 | 129.8 | 983 | 1,081 |
-| **Apache Thrift** | **63.2** | 127.7 | 127.4 | 126.7 | 1,008 | 1,090 |
-| **brpc (`baidu_std`)** | 46.9 | 124.1 | 125.5 | 125.2 | 965 | **1,028** |
-| **gRPC C++ (callback)** | 24.9 | 65.1 | 70.0 | 68.5 | 1,499 | **11,174** |
-| **Tonic (Rust)** | 27.4 | 68.1 | 68.1 | 67.8 | 1,913 | 1,982 |
-| **gRPC C++ (sync)** | 24.1 | 50.8 | 59.3 | 61.9 | 1,999 | 3,883 |
-| **gRPC-Go** | 25.3 | 56.0 | 54.0 | 52.4 | 2,376 | 4,211 |
+| **grpc-lite (Zig)** | 56.0 | 129.4 | **134.6** | **132.2** | **962** | 1,130 |
+| **Cap'n Proto** | 56.5 | **135.5** | 132.0 | 129.8 | 985 | 1,073 |
+| **Apache Thrift** | **63.8** | 128.0 | 128.3 | 127.1 | 1,001 | 1,094 |
+| **brpc (`baidu_std`)** | 47.5 | 123.8 | 125.9 | 125.0 | 967 | **1,030** |
+| **gRPC C++ (callback)** | 37.5 | 65.7 | 70.3 | 70.8 | 1,700 | **5,820** |
+| **Tonic (Rust)** | 41.3 | 69.8 | 69.4 | 68.5 | 1,890 | 1,950 |
+| **gRPC-Go (`1.83.2`)** | 40.6 | 69.6 | 66.2 | 63.8 | 1,980 | 3,530 |
+| **gRPC C++ (sync)** | 34.8 | 50.9 | 60.2 | 62.8 | 1,980 | 3,750 |
 
 **Observations:**
-- **Two clear performance tiers emerge on 1 server core:** `grpc-lite`, `Cap'n Proto`, `Thrift`, and `brpc` all saturate near **125k–135k RPC/s** with tight, predictable **1.03–1.12 ms P99** at `C=128`. Notably, `grpc-lite` is the only gRPC stack in this upper tier (2.0× faster than Tonic and C++ callback, 2.6× faster than gRPC-Go).
-- **Queueing starts above `C = 8`:** throughput barely rises from `C = 8` to `C = 128`, while P99 climbs linearly with Little's Law (`concurrency / throughput`).
-- **Tail-latency trade-off in C++ callback:** `gRPC C++ (callback)` delivers +11% throughput over `sync` at `C=128`, but its P99 still spikes to **11.17 ms** (2.9× worse than `sync` and 5.6× worse than `Tonic`'s ultra-tight `1.98 ms`).
+- **Two sharp single-core tiers:** `grpc-lite`, `Cap'n Proto`, `Thrift`, and `brpc` all saturate near **125k–135k RPC/s** with razor-tight **1.03–1.13 ms P99** at `C=128` (`grpc-lite` is the sole gRPC stack in this upper tier, ~2× faster than Tonic/C++/Go).
+- Under `h2load -m 1`, `gRPC-Go` jumps from `52.4k → 63.8k` at `C=128` and `gRPC C++ (callback)`'s `C=128` P99 drops nearly in half (`11.17 ms → 5.82 ms`), though `Tonic` retains the tightest Tier-2 tail latency (`1.95 ms` P99, practically equal to its `1.89 ms` P50).
 
 ---
 
-### 1.3 Multicore Scaling (`1 → 4 → 8` Server Cores, 1 KiB, `C = 128`)
+### 1.3 Multicore Scaling (`1 → 4 → 8` Server Cores, 1 KiB, `C = 128`, `-m 1`)
 
 ![Multicore Scaling Across 8 RPC Frameworks](figures/04-native-multicore-scaling.png)
 
 | Stack | 1 Core (RPC/s) | 4 Cores (RPC/s) | 8 Cores (RPC/s) | 8c / 1c Scaling | 8c P99 (µs) | 8c Client / Server CPU % |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| **Apache Thrift** | 128,089 | 479,248 | **984,166** | **7.68×** | **231** | 440% / 510% |
-| **Cap'n Proto** | 129,825 | **496,351** | 764,558 | 5.89× | 864 | 566% / 364% |
-| **brpc (`baidu_std`)** | 124,709 | 444,787 | 637,083 | 5.11× | 250 | 557% / 405% |
-| **grpc-lite (Zig)** | **133,882** | 410,059 | 425,078 | 3.18×\* | 819 | **602% / 262%** |
-| **gRPC C++ (sync)** | 62,325 | 222,636 | 374,192 | **6.00×** | **801** | 587% / 571% |
-| **gRPC C++ (callback)** | 68,171 | 242,756 | 343,594 | 5.04× | 1,364 | 595% / 524% |
-| **Tonic (Rust)** | 67,569 | 270,873 | 305,858 | 4.53× | 1,925 | 509% / 335% |
-| **gRPC-Go** | 52,735 | 177,051 | 283,320 | 5.37× | 1,745 | 512% / 575% |
+| **grpc-lite (Zig)** | **131,517** | **548,392** | **1,069,242** | **8.13×** | **159** | 489% / 515% |
+| **Apache Thrift** | 127,732 | 486,448 | 983,616 | 7.70× | 226 | 433% / 509% |
+| **Cap'n Proto** | 129,962 | 497,809 | 771,516 | 5.94× | 637 | 571% / 372% |
+| **brpc (`baidu_std`)** | 124,800 | 443,854 | 637,172 | 5.11× | 248 | 556% / 404% |
+| **Tonic (Rust)** | 68,922 | 266,449 | 510,676 | 7.41× | 466 | 362% / 514% |
+| **gRPC C++ (callback)** | 70,206 | 247,519 | 446,897 | 6.37× | 1,240 | 256% / 549% |
+| **gRPC-Go (`1.83.2`)** | 63,890 | 217,162 | 405,125 | 6.34× | 1,280 | 232% / 608% |
+| **gRPC C++ (sync)** | 63,169 | 221,291 | 396,806 | 6.28× | 751 | 225% / 559% |
 
 **Observations:**
-- **Apache Thrift nearly achieves linear 8-core scaling** (`7.68×`, approaching **1M RPC/s** at `231 µs` P99) while using the lowest client CPU (`440%` out of an 800% budget).
-- **\*`grpc-lite` plateaus at 4 → 8 cores because the C++ gRPC client saturates first:** client CPU hits `602%` while server process CPU sits at just `262%` (out of 800%). Even capped by the client, `grpc-lite` remains the highest-throughput gRPC server at `425.1k RPC/s`.
-- **Major post-fix reversal between C++ sync and callback:** once `cpp-server` properly sizes completion queues and pollers to `SERVER_THREADS`, **`gRPC C++ (sync)` scales `6.00×` to `374.2k RPC/s` at `801 µs` P99** — beating `C++ callback` (`343.6k`, `1,364 µs` P99), `Tonic` (`305.9k`), and `gRPC-Go` (`283.3k`) on this 128-connection native workload!
+- **`grpc-lite` takes #1 overall across all 8 RPC frameworks** once freed from the blocking C++ client: scaling **`8.13×`** (slight super-linearity from better L2/L3 cache residency per reactor at 8 cores) to **`1,069,242 RPC/s`** at **`159 µs` P99**, beating **Apache Thrift** (`983.6k`, `226 µs`), **Cap'n Proto** (`771.5k`), and **brpc** (`637.2k`) — even with HTTP/2 multiplexing disabled (`-m 1`)!
+- **Every other gRPC stack also jumped sharply on 8 cores:** `Tonic` climbed from `306k → 510.7k` (`7.41×`, `466 µs` P99), `gRPC C++ callback` from `344k → 446.9k`, `gRPC-Go` from `283k → 405.1k`, and `gRPC C++ sync` from `374k → 396.8k` (`751 µs` P99).
 
 ---
 
-### 1.4 Large Symmetric & Asymmetric Payloads (1 Server Core, `C = 32`)
+### 1.4 Large Symmetric & Asymmetric Payloads (1 Server Core, `C = 32`, `-m 1`)
 
 ![Symmetric Payload Bandwidth](figures/05-native-payload-bandwidth.png)
 
 | Stack | 64 KiB RPC/s | 64 KiB MiB/s | 1 MiB RPC/s | 1 MiB MiB/s | 1 MiB P99 (ms) |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| **Cap'n Proto** | 35,431 | 4,429 | **3,583** | **7,166** | **11.1** |
-| **Apache Thrift** | **41,567** | **5,196** | 2,210 | 4,419 | 15.5 |
-| **Tonic (Rust)** | 29,075 | 3,634 | 2,107 | 4,214 | 21.9 |
-| **brpc (`baidu_std`)** | 35,706 | 4,463 | 2,062 | 4,123 | 41.2 |
-| **gRPC C++ (sync)** | 20,713 | 2,589 | 1,742 | 3,484 | 85.5 |
-| **gRPC-Go** | 12,583 | 1,573 | 1,645 | 3,290 | 117.4 |
-| **gRPC C++ (callback)** | 24,719 | 3,090 | 1,631 | 3,263 | 121.4 |
-| **grpc-lite (Zig)** | 21,855 | 2,732 | 1,511 | 3,022 | 25.7 |
+| **Apache Thrift** | **41,709** | **5,214** | **2,220** | **4,441** | **15.4** |
+| **brpc (`baidu_std`)** | 35,553 | 4,444 | 1,872 | 3,744 | 43.4 |
+| **Cap'n Proto** | 33,133 | 4,142 | 1,765 | 3,530 | 20.6 |
+| **gRPC-Go (`1.83.2`)** | 12,062 | 1,508 | 1,657 | 3,314 | 131.0 |
+| **gRPC C++ (callback)** | 21,936 | 2,742 | 1,604 | 3,209 | 124.7 |
+| **gRPC C++ (sync)** | 20,316 | 2,540 | 1,536 | 3,072 | 112.7 |
+| **Tonic (Rust)** | 20,035 | 2,504 | 1,422 | 2,844 | 32.9 |
+| **grpc-lite (Zig)** | 24,031 | 3,004 | 1,307 | 2,613 | 25.5 |
 
 ![Asymmetric Payload Throughput](figures/06-native-asymmetric-payload.png)
 
 | Stack | 64 B Req → 64 KiB Resp (RPC/s) | 64 KiB Req → 64 B Resp (RPC/s) | Direction Ratio (Large-Req / Large-Resp) |
 | --- | ---: | ---: | ---: |
-| **Apache Thrift** | 53,795 | **76,175** | 1.42× |
-| **brpc (`baidu_std`)** | 51,421 | 66,140 | 1.29× |
-| **Cap'n Proto** | **55,020** | 53,625 | 0.97× |
-| **Tonic (Rust)** | 42,165 | 47,333 | 1.12× |
-| **grpc-lite (Zig)** | 44,124 | 43,558 | 0.99× |
-| **gRPC C++ (sync)** | 37,766 | 35,362 | 0.94× |
-| **gRPC C++ (callback)** | 35,939 | 36,437 | 1.01× |
-| **gRPC-Go** | 19,311 | 21,710 | 1.12× |
+| **Apache Thrift** | 53,411 | **76,988** | 1.44× |
+| **brpc (`baidu_std`)** | 51,447 | 66,465 | 1.29× |
+| **Cap'n Proto** | **56,606** | 52,882 | 0.93× |
+| **grpc-lite (Zig)** | 38,107 | 41,739 | 1.10× |
+| **Tonic (Rust)** | 25,041 | 45,342 | **1.81×** |
+| **gRPC C++ (callback)** | 36,426 | 31,967 | 0.88× |
+| **gRPC C++ (sync)** | 36,235 | 34,808 | 0.96× |
+| **gRPC-Go (`1.83.2`)** | 18,779 | 21,669 | 1.15× |
 
 **Observations:**
-- **Cap'n Proto dominates 1 MiB symmetric payloads** after pre-binding sockets with `TCP_NODELAY`, reaching **7,166 MiB/s** (`7.0 GiB/s` aggregate req+resp on 1 server core) with a crisp `11.1 ms` P99 and a clean 8.4% spread (down from 34%).
-- **Tonic leads all gRPC stacks at 1 MiB (`4,214 MiB/s`, `21.9 ms` P99)**, essentially matching Thrift (`4,419 MiB/s`) and beating brpc (`4,123 MiB/s`).
-- **`grpc-lite 0f6c850` improved +17.2% at 1 MiB** (`3,022 MiB/s`) with a tight `25.7 ms` P99 — far cleaner tail latency than `gRPC C++` (`85.5–121.4 ms`) and `gRPC-Go` (`117.4 ms`), though its bulk throughput still trails `Tonic` and `C++ sync`.
-- **Direction matters:** Thrift (+42%) and brpc (+29%) absorb large requests significantly faster than generating large responses, while Cap'n Proto leads the large-response case (`55.0k RPC/s`).
+- **At 64 KiB and 1 MiB, framing overhead shrinks and memory-copy / HTTP/2 flow-control mechanics take over:** `Apache Thrift` leads both 64 KiB (`5,214 MiB/s`) and 1 MiB (`4,441 MiB/s`, `15.4 ms` P99).
+- Among the 5 gRPC stacks at `-m 1`: `grpc-lite` leads 64 KiB (`3,004 MiB/s`) and maintains the tightest 1 MiB P99 (`25.5 ms` vs `112.7–131.0 ms` for C++/Go), whereas `gRPC-Go` (`3,314 MiB/s`) and `gRPC C++ callback` (`3,209 MiB/s`) achieve higher 1 MiB throughput at the cost of 4×–5× worse tail latency.
 
 ---
 
-## Part 2 — Extended gRPC Matrix: Plaintext vs. TLS, Multicore & Streaming
+## Part 2 — Multiplexed gRPC Plaintext vs. TLS Matrix via `h2load`
 
-This 420-run matrix tests the **5 gRPC server configurations** under heavy multiplexed load using **two independent load-generator processes** (Go `grpc-go/1.83.2` or Rust `tonic/0.14.6`, pinned to CPUs `0–3` and `4–7`, 32 total connections, concurrency 512 for unary / 32 for streaming). TLS verifies a local CA and `localhost` SAN certificate on every call; stack-default TLS versions and cipher suites are preserved.
+This 240-run matrix ([`harness/campaign_h2load.py`](../harness/campaign_h2load.py)) tests all **5 gRPC server configurations** under realistic **HTTP/2 multiplexing** using off-the-shelf **`h2load` (`nghttp2/1.69.0`)** in both Plaintext (`h2c`) and TLS (`h2`, OpenSSL). Across all 240 runs (**286.7M RPCs, 0 errors**), every server reached **92%–100% server core utilization** while `h2load` preserved client CPU headroom.
 
-### 2.1 Single-Core 1 KiB Unary: Plaintext vs. TLS
+### 2.1 Multicore 1 KiB Unary Scaling: Plaintext & TLS (`1 → 2 → 4 → 8` Server Cores)
 
-![gRPC 1-Core Unary: Plaintext vs TLS](figures/07-grpc-unary-plaintext-vs-tls.png)
+![Neutral Third-Party High-Load gRPC Scaling via h2load](figures/07-grpc-h2load-multicore-scaling.png)
 
-| Server | Plaintext — Go Client | Plaintext — Tonic Client | TLS — Go Client | TLS — Tonic Client | TLS Retention (Go / Tonic) |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| **grpc-lite (Zig, OpenSSL 4.0.3)** | **434,887** | **407,390** | **345,802** | **271,739** | 79.5% / 66.7% |
-| **Tonic (Rust, ring)** | 92,307 | 88,298 | 84,370 | 79,381 | 91.4% / 89.9% |
-| **gRPC C++ (callback)** | 84,372 | 82,208 | 75,837 | 71,648 | 89.9% / 87.2% |
-| **gRPC-Go (`1.83.2`)** | 78,229 | 79,417 | 75,902 | 75,432 | **97.0% / 95.0%** |
-| **gRPC C++ (sync)** | 67,356 | 67,430 | 60,073 | 58,403 | 89.2% / 86.6% |
+#### Plaintext (`h2c`, 1 KiB Unary)
+
+| Server | 1c (12c cli) | 2c (12c cli) | 4c (12c cli) | 8c (8c cli) | 4c / 1c | 8c / 1c | 8c P50 / P99 (ms) | 8c Srv / Cli Core CPU % |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **grpc-lite (Zig)** | **457,342** | **899,941** | **1,799,087** | **2,483,664** | **3.93×** | 5.43× | **0.48 / 2.86** | 740% / 641% |
+| **Tonic (Rust)** | 88,744 | 172,701 | 339,348 | 603,532 | 3.82× | 6.80× | 2.31 / 7.08 | 781% / 361% |
+| **gRPC C++ (callback)** | 80,719 | 158,948 | 317,385 | 571,179 | **3.93×** | **7.08×** | 0.37 / 32.08 | 793% / 344% |
+| **gRPC-Go (`1.83.2`)** | 75,107 | 137,795 | 263,766 | 449,862 | 3.51× | 5.99× | 2.70 / 16.64 | 752% / 278% |
+| **gRPC C++ (sync)** | 61,211 | 110,079 | 205,240 | 369,836 | 3.35× | 6.04× | 3.73 / 14.53 | 789% / 131% |
+
+#### TLS (`h2`, OpenSSL, 1 KiB Unary)
+
+| Server | 1c (12c cli) | 2c (12c cli) | 4c (12c cli) | 8c (8c cli) | 4c / 1c | 8c / 1c | 8c P50 / P99 (ms) | 8c Srv / Cli Core CPU % |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **grpc-lite (Zig, OpenSSL)** | **415,235** | **818,688** | **1,528,484** | **2,176,739** | 3.68× | 5.24× | **0.61 / 1.35** | 779% / 625% |
+| **Tonic (Rust, ring)** | 83,976 | 162,461 | 318,450 | 552,329 | 3.79× | 6.58× | 2.52 / 7.78 | 781% / 388% |
+| **gRPC C++ (callback)** | 75,886 | 150,014 | 300,109 | 531,005 | **3.95×** | **7.00×** | 0.41 / 35.21 | 792% / 377% |
+| **gRPC-Go (`1.83.2`)** | 75,534 | 139,591 | 265,530 | 451,962 | 3.52× | 5.98× | 2.99 / 14.11 | 763% / 323% |
+| **gRPC C++ (sync)** | 55,283 | 100,037 | 187,831 | 336,633 | 3.40× | 6.09× | 4.11 / 16.26 | 788% / 135% |
 
 **Observations:**
-- **`grpc-lite` (`0f6c850` + OpenSSL 4.0.3) dominates 1-core multiplexed unary** by **4.6×–4.7×** over Tonic in Plaintext (`434.9k / 407.4k`) and **3.4×–4.1×** over TLS (`345.8k / 271.7k`).
-- **`gRPC-Go 1.83.2`** retains **95%–97%** of its plaintext throughput under TLS (`75.9k / 75.4k`), matching or edging past `gRPC C++ (callback)` over TLS (`75.8k / 71.6k`).
+- **Linear scaling to 4 cores & >2M RPC/s on 8 cores (both Plaintext & TLS):** Freed from Go/Tonic client CPU limits, **`grpc-lite` scales `3.93×` on 4 cores (`1.80M` PT / `1.53M` TLS)** and reaches **`2.48M req/s` PT / `2.18M req/s` TLS on 8 cores** — **4.1× / 3.9× faster than second-place Tonic (`604k / 552k`)**, with **90.8%** 1-core TLS retention and **`1.35–2.86 ms` P99** under 1,536 in-flight streams.
+- **Sustained all-core thermal scaling at 8 cores:** Under sustained 5 s full 16-core load on this mobile Ryzen 9 9955HX, all 5 servers show slightly sub-linear `8c / 4c` gain (`1.38×–1.80×` vs `1.97×` at `2c / 1c`) due to sustained all-core power/frequency limits (in 1 s cold-burst smoke runs, 8-core `grpc-lite` reached `3.30M` PT / `2.84M` TLS and `Tonic` reached `674k / 629k`).
+- **Tonic vs. gRPC C++ callback:** `Tonic` edges ahead of `gRPC C++ (callback)` by **+5.7%** PT (`604k` vs `571k`) and **+4.0%** TLS (`552k` vs `531k`) on 8 cores while delivering **4.5× tighter P99** (`7.08–7.78 ms` vs `32.1–35.2 ms`). `gRPC-Go 1.83.2` shows virtually zero TLS overhead (`450k` PT vs `452k` TLS on 8 cores!).
 
 ---
 
-### 2.2 Multicore Unary Scaling: Plaintext & TLS (`1 → 4 → 8` Cores, 1 KiB)
+### 2.2 Large Symmetric Payloads (`64 KiB` & `1 MiB`, 1 Core, Plaintext vs. TLS)
 
-![gRPC Multicore Unary Scaling](figures/08-grpc-multicore-plaintext-vs-tls.png)
+![gRPC Large Symmetric Payloads via h2load](figures/08-grpc-h2load-large-payloads-plaintext-vs-tls.png)
 
-| Server | Plaintext 1c (Go / Tonic) | Plaintext 4c (Go / Tonic) | Plaintext 8c (Go / Tonic) | TLS 1c (Go / Tonic) | TLS 4c (Go / Tonic) | TLS 8c (Go / Tonic) |
+| Server | 64 KiB PT (RPC/s · MiB/s) | 64 KiB TLS (RPC/s · MiB/s) | 64 KiB P99 PT/TLS (ms) | 1 MiB PT (RPC/s · MiB/s) | 1 MiB TLS (RPC/s · MiB/s) | 1 MiB P99 PT/TLS (ms) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| **grpc-lite (Zig)** | **435k / 407k** | **606k / 499k** | **589k / 468k**\* | **346k / 272k** | **579k / 464k** | **559k / 441k**\* |
-| **gRPC C++ (callback)** | 84k / 82k | 295k / **311k** | **429k / 419k** | 76k / 72k | 270k / 274k | 398k / **387k** |
-| **Tonic (Rust)** | 92k / 88k | **301k** / 308k | 428k / 415k | 84k / 79k | **274k / 275k** | **402k** / 375k |
-| **gRPC-Go** | 78k / 79k | 243k / 254k | 375k / 369k | 76k / 75k | 244k / 247k | 370k / 365k |
-| **gRPC C++ (sync)** | 67k / 67k | 211k / 219k | 316k / 346k | 60k / 58k | 194k / 197k | 287k / 313k |
-
-*\*`grpc-lite` at 4 and 8 cores is load-generator-limited in this 8-client-core setup: server process CPU is only `185%–287%` (out of 400%–800% budget). Its true 8-core server ceiling cannot be established here.*
+| **gRPC C++ (callback)** | **27,446 · 3,431** | **18,630 · 2,329** | 74.8 / 98.9 | **1,797 · 3,595** | **1,131 · 2,262** | 170.9 / 233.6 |
+| **gRPC C++ (sync)** | 23,576 · 2,947 | 14,937 · 1,867 | 49.9 / 69.2 | 1,680 · 3,359 | 1,080 · 2,159 | 149.1 / 212.3 |
+| **Tonic (Rust)** | 22,245 · 2,781 | 16,391 · 2,049 | 11.7 / 15.8 | 1,377 · 2,755 | 1,103 · 2,206 | 134.4 / 142.3 |
+| **grpc-lite (Zig)** | 22,596 · 2,825 | 14,483 · 1,810 | **9.3 / 14.3** | 1,516 · 3,033 | 984 · 1,968 | **33.6 / 51.0** |
+| **gRPC-Go (`1.83.2`)** | 10,390 · 1,299 | 7,874 · 984 | 92.0 / 151.9 | 1,670 · 3,339 | 932 · 1,865 | 230.9 / 361.7 |
 
 **Observations:**
-- **`gRPC C++ (callback)` and `Tonic` are neck-and-neck from 1 to 8 cores** in both plaintext (`429k` vs `428k` Go client; `419k` vs `415k` Tonic client) and TLS (`398k` vs `402k` Go; `387k` vs `375k` Tonic).
-- Under heavily multiplexed extended load (`C=512` across 32 connections), **`C++ callback` retains a +21% to +39% edge over `C++ sync`** on 8 cores, while `gRPC-Go 1.83.2` climbs cleanly to `375k` Plaintext / `370k` TLS.
+- **`gRPC C++ (callback)` leads large-payload gRPC bandwidth** across all 4 cells (`3,431 / 2,329 MiB/s` at 64 KiB; `3,595 / 2,262 MiB/s` at 1 MiB), with `Tonic` taking #2 under TLS (`2,049 / 2,206 MiB/s`).
+- **`grpc-lite` trades ~13%–22% bulk bandwidth for dramatically cleaner tail latency:** `9.3 / 14.3 ms` P99 at 64 KiB and `33.6 / 51.0 ms` P99 at 1 MiB — **4.5×–7.1× tighter than `gRPC C++` and `gRPC-Go`** (`149–362 ms`).
 
 ---
 
-### 2.3 Streaming Modes: Client-Stream, Server-Stream & Bidi Ping-Pong (1 Core, `16 × 1 KiB`)
+### 2.3 Asymmetric Payloads (`64 B ↔ 64 KiB`, 1 Core, Plaintext vs. TLS)
 
-Each operation is **one complete streaming RPC** (stream setup, 16 messages or 16 ping-pong exchanges, half-close, and terminal `OK` status). Multiply by 16 for streaming message/s (32 application messages/RPC for bidi).
+![gRPC Asymmetric Payloads via h2load](figures/09-grpc-h2load-asymmetric-plaintext-vs-tls.png)
 
-![gRPC Streaming Performance: Plaintext vs TLS](figures/09-grpc-streaming-plaintext-vs-tls.png)
+| Server | 64 B → 64 KiB PT (RPC/s · P99 ms) | 64 B → 64 KiB TLS (RPC/s · P99 ms) | 64 KiB → 64 B PT (RPC/s · P99 ms) | 64 KiB → 64 B TLS (RPC/s · P99 ms) |
+| --- | ---: | ---: | ---: | ---: |
+| **grpc-lite (Zig)** | **46,967** · **4.4** | 28,322 · **7.0** | 47,668 · **4.3** | 26,376 · 7.8 |
+| **Tonic (Rust)** | 27,731 · 9.6 | 21,768 · 12.2 | **57,217** · 4.5 | **38,604** · **6.7** |
+| **gRPC C++ (callback)** | 40,858 · 36.9 | **29,347** · 62.8 | 41,326 · 49.2 | 30,396 · 70.3 |
+| **gRPC C++ (sync)** | 38,904 · 17.2 | 26,464 · 41.2 | 36,431 · 11.1 | 23,888 · 32.1 |
+| **gRPC-Go (`1.83.2`)** | 14,736 · 21.5 | 11,379 · 25.3 | 28,609 · 11.0 | 21,874 · 14.0 |
+
+**Observations:**
+- **Direction creates a crisp split between `grpc-lite` and `Tonic`:** `grpc-lite` is symmetric and leads **large-response Plaintext (`47.0k`, `4.4 ms` P99)** while virtually matching `C++ callback` on TLS (`28.3k` vs `29.3k` at **9× lower P99**). Conversely, **`Tonic` dominates large-request ingestion (`64 KiB → 64 B`)** in both Plaintext (`57.2k`, `3,580 MiB/s`) and TLS (`38.6k`, `2,415 MiB/s`, `6.7 ms` P99)!
+
+---
+
+## Part 3 — gRPC Streaming Matrix (Go & Tonic Clients, 1 Core, `16 × 1 KiB`)
+
+Because `h2load` is an HTTP/2 Unary tool and cannot perform multi-frame gRPC streaming, the 3 streaming modes run with dual-process **Go (`1.83.2`)** and **Tonic (`0.14.6`)** gRPC clients ([`harness/campaign_extended.py --streaming-only`](../harness/campaign_extended.py), 180 formal runs, 20.9M complete streaming RPCs, 0 errors). Each operation is one complete streaming RPC (16 messages or 16 ping-pong exchanges + half-close + `OK`).
+
+![gRPC Streaming Performance: Plaintext vs TLS](figures/10-grpc-streaming-plaintext-vs-tls.png)
 
 | Mode | Server | Plaintext (Go / Tonic RPC/s) | TLS (Go / Tonic RPC/s) |
 | --- | --- | ---: | ---: |
-| **Client-Stream** | **grpc-lite (Zig)** | **68,601** / **62,882** | **46,313** / 41,681 |
-| **Client-Stream** | **Tonic (Rust)** | 42,983 / 58,669 | 35,500 / **47,455** |
-| **Client-Stream** | **gRPC-Go** | 33,309 / 36,464 | 30,686 / 34,949 |
-| **Client-Stream** | **gRPC C++ (callback)** | 26,183 / 29,563 | 22,416 / 25,166 |
-| **Client-Stream** | **gRPC C++ (sync)** | 26,072 / 28,529 | 22,249 / 24,793 |
-| **Server-Stream** | **Tonic (Rust)** | **44,817** / **54,196** | **38,749** / **43,633** |
-| **Server-Stream** | **grpc-lite (Zig)** | 44,386 / 47,725 | 37,288 / 34,609 |
-| **Server-Stream** | **gRPC-Go** | 38,717 / 36,724 | 31,358 / 29,389 |
-| **Server-Stream** | **gRPC C++ (sync)** | 8,300 / 8,562 | 7,391 / 7,767 |
-| **Server-Stream** | **gRPC C++ (callback)** | 7,917 / 8,483 | 7,475 / 7,567 |
-| **Bidi Ping-Pong** | **grpc-lite (Zig)** | 4,665 / **8,675** | 4,630 / **6,936** |
-| **Bidi Ping-Pong** | **gRPC-Go** | **5,801** / 5,691 | **5,389** / 5,034 |
-| **Bidi Ping-Pong** | **Tonic (Rust)** | 4,051 / 7,102 | 4,282 / 6,318 |
-| **Bidi Ping-Pong** | **gRPC C++ (callback)** | 3,014 / 5,604 | 2,594 / 4,660 |
-| **Bidi Ping-Pong** | **gRPC C++ (sync)** | 2,638 / 4,325 | 2,312 / 3,711 |
+| **Client-Stream** | **grpc-lite (Zig)** | **68,405** / **63,849** | **47,731** / 42,233 |
+| **Client-Stream** | **Tonic (Rust)** | 42,961 / 58,867 | 35,348 / **47,690** |
+| **Client-Stream** | **gRPC-Go (`1.83.2`)** | 33,206 / 36,503 | 30,707 / 34,649 |
+| **Client-Stream** | **gRPC C++ (callback)** | 26,308 / 29,412 | 22,435 / 25,557 |
+| **Client-Stream** | **gRPC C++ (sync)** | 26,001 / 28,573 | 22,159 / 24,802 |
+| **Server-Stream** | **Tonic (Rust)** | **44,719** / **53,099** | **39,146** / **43,887** |
+| **Server-Stream** | **grpc-lite (Zig)** | 44,528 / 48,015 | 37,484 / 34,470 |
+| **Server-Stream** | **gRPC-Go (`1.83.2`)** | 39,040 / 36,912 | 31,015 / 29,657 |
+| **Server-Stream** | **gRPC C++ (sync)** | 8,218 / 8,576 | 7,392 / 7,788 |
+| **Server-Stream** | **gRPC C++ (callback)** | 7,859 / 8,494 | 7,538 / 7,538 |
+| **Bidi Ping-Pong** | **grpc-lite (Zig)** | 4,643 / **8,800** | 4,624 / **6,977** |
+| **Bidi Ping-Pong** | **gRPC-Go (`1.83.2`)** | **5,826** / 5,645 | **5,401** / 5,067 |
+| **Bidi Ping-Pong** | **Tonic (Rust)** | 4,077 / 7,120 | 4,271 / 6,339 |
+| **Bidi Ping-Pong** | **gRPC C++ (callback)** | 3,028 / 5,677 | 2,610 / 4,667 |
+| **Bidi Ping-Pong** | **gRPC C++ (sync)** | 2,634 / 4,342 | 2,327 / 3,713 |
 
 **Observations:**
-- **Tonic is now #1 in Server-Streaming across all 4 client/transport cells!** Eliminating the per-RPC `tokio::spawn` + `mpsc::channel(1)` bottleneck lifted Tonic from ~8k to **`44.8k / 54.2k` Plaintext** and **`38.7k / 43.6k` TLS**, beating `grpc-lite` (`44.4k / 47.7k` PT, `37.3k / 34.6k` TLS) and `gRPC-Go` (`38.7k / 36.7k` PT, `31.4k / 29.4k` TLS).
-- **Why gRPC C++ stays at ~8k on Server-Stream:** gRPC C++'s standard per-message `Write()` / single-in-flight `StartWrite()` APIs flush each of the 16 responses through the completion/reactor state machine sequentially; enabling `WriteOptions::set_buffer_hint()` on synchronous or single-in-flight writes deadlocks waiting for the corked flush, so without a batched/coalesced write API, C++ server-streaming remains ~5× behind Tonic, grpc-lite, and gRPC-Go.
-- **Client-streaming shows strong client-server affinity:** `grpc-lite` leads under the Go client (`68.6k / 46.3k`) and Tonic-client plaintext (`62.9k`), while `Tonic` takes the lead in Tonic-client TLS (`47.5k` vs `41.7k`).
-- **Bidi ping-pong is latency-bound and client-sensitive:** `gRPC-Go` leads under the Go client (`5.80k / 5.39k`), while `grpc-lite` leads under the Tonic client (`8.68k / 6.94k`), followed by `Tonic` (`7.10k / 6.32k`).
-
----
-
-### 2.4 Large 64 KiB Unary: Plaintext vs. TLS (1 Core)
-
-![gRPC Large-Payload Unary 64 KiB](figures/10-grpc-large-64kib-plaintext-vs-tls.png)
-
-| Server | Plaintext (Go / Tonic RPC/s) | TLS (Go / Tonic RPC/s) |
-| --- | ---: | ---: |
-| **gRPC C++ (callback)** | 15,660 / **27,499** | **15,228** / **17,715** |
-| **gRPC C++ (sync)** | 14,442 / 24,537 | 10,797 / 14,233 |
-| **grpc-lite (Zig)** | **17,075** / 24,004 | 12,931 / 14,767 |
-| **Tonic (Rust)** | 16,772 / 20,042 | 13,852 / 15,225 |
-| **gRPC-Go** | 8,020 / 9,892 | 6,977 / 7,659 |
-
-**Observations:**
-- Under the Go client, **`grpc-lite 0f6c850` leads Plaintext (`17.1k`)** while **`gRPC C++ (callback)` leads TLS (`15.2k`)**.
-- Under the Tonic client (which drives higher large-message offered load than Go), **`gRPC C++ (callback)` leads both Plaintext (`27.5k`) and TLS (`17.7k`)**, while **`grpc-lite 0f6c850` surged to `24.0k` Plaintext** (virtually matching `C++ sync` at `24.5k` and pulling +20% ahead of `Tonic` at `20.0k`). Over TLS with the Tonic client, `Tonic` (`15.2k`), `grpc-lite` (`14.8k`), and `C++ sync` (`14.2k`) sit within ~7% of each other.
+- **Tonic leads Server-Streaming across all 4 cells (`44.7k / 53.1k` PT, `39.1k / 43.9k` TLS)** via zero-spawn `tokio_stream::iter(...)`, followed closely by `grpc-lite` (`44.5k / 48.0k` PT, `37.5k / 34.5k` TLS) and `gRPC-Go` (`39.0k / 36.9k` PT, `31.0k / 29.7k` TLS).
+- **gRPC C++ (`sync` & `callback`) remains at ~`7.4k–8.6k` on Server-Streaming:** standard per-message `Write()` / single-in-flight `StartWrite()` flushes each of the 16 responses individually (and enabling `WriteOptions::set_buffer_hint()` deadlocks on synchronous/single-in-flight corking).
+- **Client-Stream & Bidi show client-server affinity:** `grpc-lite` leads Go-client client-stream (`68.4k / 47.7k`) and Tonic-client bidi (`8.80k / 6.98k`), `Tonic` leads Tonic-client TLS client-stream (`47.7k`), and `gRPC-Go` leads Go-client bidi (`5.83k / 5.40k`).
 
 ---
 
@@ -272,23 +268,23 @@ Each operation is **one complete streaming RPC** (stream setup, 16 messages or 1
 
 | Use Case | Strongest Candidates | Rationale from Measured Data |
 | --- | --- | --- |
-| **Ultra-low latency & peak multicore throughput (non-gRPC OK)** | **Apache Thrift**, **Cap'n Proto**, **brpc** | `15.5–20.8 µs` P50, `637k–984k RPC/s` on 8 cores, tight `231–864 µs` 8-core P99. `Cap'n Proto` also dominates 1 MiB bulk transfers (`7,166 MiB/s`, `11.1 ms` P99). |
-| **Small-message gRPC (Plaintext & TLS), client-stream & bidi** | **grpc-lite (Zig)** | Fastest gRPC latency (`29.8 µs` P50), `3.4×–4.7×` higher 1-core unary RPC/s (plaintext & OpenSSL TLS), leads client-streaming and Tonic-client bidi. *Caveat: 1 MiB symmetric throughput (`3,022 MiB/s`) trails Tonic.* |
-| **Balanced production Rust gRPC across unary, streaming & large payloads** | **Tonic (Rust)** | Strongest all-rounder across gRPC workloads: **#1 in server-streaming** (`54.2k` PT / `43.6k` TLS), **#1 gRPC stack at 1 MiB** (`4,214 MiB/s`, `21.9 ms` P99), tight `C=128` tail latency (`1.98 ms`), and ~402k 8-core TLS unary. |
-| **High-throughput C++ gRPC** | **gRPC C++ (callback / sync)** | `callback` leads 64 KiB extended gRPC (`27.5k` PT / `17.7k` TLS with Tonic client) and scales to `429k` PT / `398k` TLS on 8 cores. `sync` beats `callback` on 1-conn/worker native 8-core (`374k`, `801 µs` P99) with far tighter single-core `C=128` P99 (`3.88 ms` vs `11.17 ms`). *Caveat: server-streaming sits at ~8k RPC/s.* |
-| **Go ecosystem gRPC with minimal TLS penalty** | **gRPC-Go (`1.83.2`)** | Only 3%–5% TLS drop on 1 core, strong server-streaming (`38.7k` PT / `31.4k` TLS) and Go-client bidi (`5.80k / 5.39k`), scaling smoothly to `370k` 8-core TLS. *Caveat: slower on 64 KiB unary (`8k–10k`).* |
+| **Peak gRPC throughput, lowest gRPC latency & tightest P99 (PT & TLS)** | **grpc-lite (Zig)** | Matches Thrift on 1 KiB P50 (`16.0 µs`), hits **#1 overall at 8 cores (`1.07M` `-m 1`; `2.48M` PT / `2.18M` TLS multiplexed)** with `1.35–2.86 ms` P99, and leads client-stream + Tonic-client bidi. |
+| **Non-gRPC ultra-low latency & bulk binary bandwidth** | **Apache Thrift**, **Cap'n Proto**, **brpc** | `Thrift` leads 1 KiB P50 (`15.6 µs`) and 64 KiB / 1 MiB plaintext bandwidth (`5,214 / 4,441 MiB/s`, `15.4 ms` P99); `Cap'n Proto` leads `64 B → 64 KiB` (`56.6k`) and `772k` on 8 cores. |
+| **All-around production Rust gRPC (multicore, streaming, large uploads)** | **Tonic (Rust)** | #2 gRPC on 8 cores (`604k` PT / `552k` TLS, tight `7.1–7.8 ms` P99), **#1 in server-streaming** (`53.1k` PT / `43.9k` TLS), **#1 in large-request ingestion** (`57.2k` PT / `38.6k` TLS), and #2 in large-payload TLS (`2.05–2.21 GiB/s`). |
+| **Maximum gRPC bulk payload bandwidth (64 KiB / 1 MiB)** | **gRPC C++ (callback)** | Leads multiplexed gRPC 64 KiB (`3,431 / 2,329 MiB/s`) and 1 MiB (`3,595 / 2,262 MiB/s`) in both PT & TLS, and scales `7.0×–7.1×` to `571k / 531k` on 8 cores. *Caveat: monitor bimodal P99 (`32–35 ms` @ 1 KiB 8c, `171–234 ms` @ 1 MiB) and ~8k server-streaming.* |
+| **Go ecosystem gRPC with zero TLS penalty** | **gRPC-Go (`1.83.2`)** | Essentially 100% TLS retention on 1–8 cores (`450k` PT vs `452k` TLS @ 8c), strong server-streaming (`39k / 31k`) and Go-client bidi (`5.83k / 5.40k`). *Caveat: slower at 64 KiB (`10.4k / 7.9k`).* |
 
 ---
 
 ## Variability, Limits & Reproducibility
 
 ### Known Variability & Methodological Limits
-- **Run-to-run spread:** Across all 120 native cases, median `(max - min) / median` spread is **1.30%**; across all 140 extended cases, median spread is **1.13%**. The largest remaining spreads appear in `Cap'n Proto` 64 KiB (`18.4%`, down from 26%), `gRPC C++ sync` 1 MiB (`12.2%`), `brpc` 1 MiB (`10.1%`), and 4-core Go-client unary cases (`8.5%–13.8%`). All Benchkit charts display exact observed min–max whiskers/bands.
-- **Closed-loop measurement:** Does not correct for coordinated omission. Throughput uses unbiased per-worker active-time accounting `sum(completed_i / active_seconds_i)` after a synchronized post-warmup barrier.
-- **Localhost TCP only:** Excludes physical NIC latency, packet loss, switch queuing, and NUMA/cross-host effects.
-- **Client ceilings:** `grpc-lite` on 4–8 cores hits client-side CPU limits in both the native C++ matrix (`602%` client vs `262%` server) and the extended Go/Tonic matrix (`185%–287%` server CPU of 400%–800% budget).
-- **Non-gRPC scope:** TLS and streaming were measured for the 5 gRPC stacks only, not for Thrift, Cap'n Proto, or brpc.
-- **Aggregate latency:** Multi-process extended runs intentionally keep aggregate latency percentiles `null` rather than invalidly merging independent client histograms.
+- **Run-to-run spread:** Median `(max - min) / median` spread across 3 formal rounds is **1.15%** (Part 1), **1.62%** (Part 2), and **0.75%** (Part 3). Largest spreads occur in `Cap'n Proto` 64 KiB (`16.8%`), `grpc-lite` 64 KiB Plaintext (`11.7%`) and 8-core Plaintext (`10.6%`, one thermally lower round at `2.25M` vs `2.48M`/`2.51M`), and `gRPC C++ sync` 1 MiB TLS (`10.3%`). All charts show exact observed min–max whiskers/bands.
+- **Closed-loop measurement:** Does not correct for coordinated omission. Localhost TCP excludes physical NIC latency, packet loss, switch queueing, and NUMA/cross-host effects.
+- **Cross-matrix boundaries:** Do not mix raw throughput across Part 1 (`-m 1`), Part 2 (multiplexed `h2load`), and Part 3 (Go/Tonic streaming).
+- **Historical & baseline comparisons:**
+  - The post-fix Go/Tonic/`grpc-native` client baseline is preserved at [`results/2026-11-25-full-0f6c850/`](../results/2026-11-25-full-0f6c850/README.md).
+  - Pre-`2026-11-25` pre-fix invalidated reports are archived under [`report/archive/2026-11-21-invalidated/`](archive/2026-11-21-invalidated/README.md).
 
 ### Reproducing the Benchkit Graphs
 
@@ -296,8 +292,6 @@ All 10 figures (PNG + vector PDF) in [`report/figures/`](figures/) are determini
 
 ```sh
 /tmp/opencode/rpc-benchkit-venv/bin/python harness/plot_report.py \
-  --dataset results/2026-11-25-full-0f6c850 \
+  --dataset results/2026-11-25-h2load-0f6c850 \
   --output report/figures
 ```
-
-Raw provenance files (binary SHA-256 manifests, `lscpu`, compiler versions, CPU governors, compressed host telemetry, `grpc-lite.patch`, and all per-run CSV/JSONL records) are preserved under [`results/2026-11-25-full-0f6c850/`](../results/2026-11-25-full-0f6c850/README.md). Historical pre-fix invalidated reports are archived under [`report/archive/2026-11-21-invalidated/`](archive/2026-11-21-invalidated/README.md).

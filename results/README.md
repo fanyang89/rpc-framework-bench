@@ -4,7 +4,8 @@
 
 | Dataset | Status | Date | Scope |
 | --- | --- | --- | --- |
-| [`2026-11-25-full-0f6c850/`](2026-11-25-full-0f6c850/README.md) | **VALID (Current)** | 2026-11-25 | Post-fix 2-matrix campaign (780 formal + 260 smoke runs, 474.0M RPCs, 0 errors; `grpc-lite 0f6c850` OpenSSL 4.0.3, `grpc-go 1.83.2`, `tonic 0.14.6`, `grpc-cpp 1.84.3`, `Thrift 0.25.0`, `Cap'n Proto 1.5.0`, `brpc 1.18.0`). Featured in [`report/README.md`](../report/README.md). |
+| [`2026-11-25-h2load-0f6c850/`](2026-11-25-h2load-0f6c850/README.md) | **VALID (Primary / Latest)** | 2026-11-25 | Full post-fix 3-matrix `h2load` campaign (780 formal + 260 smoke runs, 524.3M RPCs, 0 errors; Native 8-framework with `h2load -m 1` for gRPC + Multiplexed `h2load` 1/2/4/8c/64KiB/1MiB/asymmetric PT & TLS + Go/Tonic Streaming; `grpc-lite 0f6c850` OpenSSL 4.0.3). Featured in [`report/README.md`](../report/README.md). |
+| [`2026-11-25-full-0f6c850/`](2026-11-25-full-0f6c850/README.md) | **VALID (Go/Tonic/C++ Client Baseline)** | 2026-11-25 | Post-fix 2-matrix campaign (780 formal + 260 smoke runs, 474.0M RPCs, 0 errors) using `grpc-native` C++ sync client and Go/Tonic load generators (documents client-CPU ceilings on 4–8 core `grpc-lite`). |
 
 ---
 

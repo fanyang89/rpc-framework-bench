@@ -1,0 +1,36 @@
+{
+    "identity": {
+        "experiment_name": "rpc-native",
+        "benchmark_name": "rpcbenchmark"
+    },
+    "constants": {
+        "hostname": "msa",
+        "architecture": "x86_64",
+        "transport": "plaintext"
+    },
+    "inputs": {
+        "framework": "capnp",
+        "scenario": "concurrency",
+        "request_bytes": 1024,
+        "response_bytes": 1024,
+        "concurrency": 8,
+        "server_cores": 1
+    },
+    "rep": 2,
+    "outputs": {
+        "completed": 677513,
+        "errors": 0,
+        "seconds": 5.00002,
+        "ops_per_second": 135502,
+        "p50_us": 55.552,
+        "p95_us": 93.952,
+        "p99_us": 97.536,
+        "min_us": 23.314,
+        "max_us": 586.565,
+        "mean_us": 59.039,
+        "client_cpu_percent": 85.39857449972698,
+        "server_cpu_percent": 63.86679823397245,
+        "payload_mib_s": 264.65234375
+    },
+    "pretty": {}
+}

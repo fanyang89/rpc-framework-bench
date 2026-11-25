@@ -13,13 +13,15 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def cases():
+def cases(streaming_only=False):
     for tls in (0, 1):
-        for cores in (1, 4, 8):
-            yield "unary", tls, cores, 1024
+        if not streaming_only:
+            for cores in (1, 4, 8):
+                yield "unary", tls, cores, 1024
         for mode in ("client-stream", "server-stream", "bidi"):
             yield mode, tls, 1, 1024
-        yield "unary", tls, 1, 65536
+        if not streaming_only:
+            yield "unary", tls, 1, 65536
 
 
 def monitor(path, stop):
@@ -42,6 +44,11 @@ def monitor(path, stop):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument(
+        "--streaming-only",
+        action="store_true",
+        help="Run only client-stream, server-stream, and bidi cases (60 smoke / 180 formal).",
+    )
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     server = Path(os.environ["GRPC_LITE_SERVER"]).resolve()
@@ -130,7 +137,7 @@ def main():
     )
     worker.start()
     try:
-        for mode, tls, cores, size in cases():
+        for mode, tls, cores, size in cases(streaming_only=args.streaming_only):
             for client in ("go", "tonic"):
                 for api in ("sync", "callback"):
                     name = f"{mode}-tls{tls}-cores{cores}-bytes{size}-{client}-{api}"
@@ -164,7 +171,10 @@ def main():
         records = [
             json.loads(line) for path in paths for line in path.read_text().splitlines()
         ]
-        expected = 140 if args.smoke else 420
+        if args.streaming_only:
+            expected = 60 if args.smoke else 180
+        else:
+            expected = 140 if args.smoke else 420
         assert len(records) == expected, (len(records), expected)
         assert all(
             record["errors"] == 0 and record["completed"] > 0 for record in records

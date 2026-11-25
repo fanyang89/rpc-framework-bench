@@ -1,0 +1,32 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "8,9,10,11,12,13,14,15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/cpp-server",
+    "127.0.0.1:26101"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/usr/bin/h2load",
+    "--no-tls-proto=h2c",
+    "-t",
+    "8",
+    "-c",
+    "128",
+    "-m",
+    "1",
+    "--warm-up-time=1s",
+    "-D",
+    "5s",
+    "-H",
+    "content-type: application/grpc",
+    "-H",
+    "te: trailers",
+    "-d",
+    "/home/fanmi/workspace/rpc-framework-bench/results/2026-11-25-h2load-0f6c850/native-measured/req-payloads/grpc-req-1024-1024.bin",
+    "http://127.0.0.1:26101/grpc.testing.TestService/UnaryCall"
+  ]
+}

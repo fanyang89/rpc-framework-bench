@@ -1,0 +1,32 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/go-server",
+    "-addr=127.0.0.1:26154"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/usr/bin/h2load",
+    "--no-tls-proto=h2c",
+    "-t",
+    "8",
+    "-c",
+    "32",
+    "-m",
+    "1",
+    "--warm-up-time=1s",
+    "-D",
+    "5s",
+    "-H",
+    "content-type: application/grpc",
+    "-H",
+    "te: trailers",
+    "-d",
+    "/home/fanmi/workspace/rpc-framework-bench/results/2026-11-25-h2load-0f6c850/native-measured/req-payloads/grpc-req-65536-65536.bin",
+    "http://127.0.0.1:26154/grpc.testing.TestService/UnaryCall"
+  ]
+}
