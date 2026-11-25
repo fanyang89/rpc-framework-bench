@@ -65,7 +65,7 @@ rpc-framework-bench/
 
 ### Requirements
 
-- Linux with `/proc`, `taskset`, `getconf`, GNU `date`, `jq`, and `openssl`
+- Linux with `/proc`, `taskset`, `getconf`, GNU `date`, `jq`, `openssl`, `curl` (HTTP/2), and `h2load` (`nghttp2`)
 - Go 1.26+, Rust/Cargo (matching `workloads/rust-tonic/Cargo.lock`), C++17 compiler, CMake, Ninja
 - gRPC C++ & Protobuf CMake packages (and for `workloads/native-cpp/`: brpc, Thrift, Cap'n Proto — see [`workloads/native-cpp/README.md`](workloads/native-cpp/README.md))
 - External `grpc-lite` interop server binary (`GRPC_LITE_SERVER`)
@@ -87,7 +87,7 @@ python3 harness/tests/tls-validation-test.py
 
 ### 2. Run Benchmark Campaigns
 
-All formal campaigns require CPUs `0–15` to be distinct physical cores (clients pinned to `0–7`, servers pinned to `15`, `12–15`, or `8–15`). Output directories must not already exist.
+All formal campaigns require CPUs `0–15` to be distinct physical cores (`campaign_native.py` & `campaign_extended.py` pin clients to `0–7` and servers to `15`, `12–15`, or `8–15`; `campaign_h2load.py` allocates `0–11` to clients for `1 / 2 / 4` server cores and `0–7` for `8` server cores). Output directories must not already exist.
 
 ```sh
 export GRPC_LITE_SERVER=/absolute/path/to/grpc-lite-interop-server
@@ -110,7 +110,7 @@ RUN_ID=my-sweep bash ./harness/sweep.sh
 go run ./harness/summarize/summarize.go results/sweeps/my-sweep/*.jsonl
 ```
 
-Add `--smoke` to `campaign_native.py` or `campaign_extended.py` for a fast end-to-end validation pass before formal measurement.
+Add `--smoke` to `campaign_native.py`, `campaign_h2load.py`, or `campaign_extended.py` for a fast end-to-end validation pass before formal measurement.
 
 ### 3. Regenerate Benchkit Report Charts
 
@@ -124,7 +124,8 @@ Add `--smoke` to `campaign_native.py` or `campaign_extended.py` for a fast end-t
 
 ## Methodology Principles
 
-- **Synchronized warmup & unbiased throughput:** All three load generators (`go/client`, `rust-tonic`, `native-cpp/load.h`) connect eagerly, synchronize workers on a post-warmup monotonic barrier, and compute unbiased per-worker active-time throughput `sum(completed_i / active_seconds_i)`.
+- **Neutral third-party gRPC Unary load generation (`h2load`):** All gRPC Unary matrices use off-the-shelf `h2load` (`nghttp2`) so fast servers are never capped by Go, Tonic, or blocking C++ client CPU ceilings (and without using any benchmarked server's own client). Every `h2load` run is preceded by a strict `curl` HTTP/2 pre-flight verifying `HTTP/2 200`, trailer `grpc-status: 0`, and exact Protobuf response length.
+- **Synchronized warmup & unbiased throughput:** All built-in load generators (`go/client`, `rust-tonic`, `native-cpp/load.h`) connect eagerly, synchronize workers on a post-warmup monotonic barrier, and compute unbiased per-worker active-time throughput `sum(completed_i / active_seconds_i)`.
 - **Zero-allocation O(1) latency histograms:** Clients record latencies in a fixed-memory log-linear histogram (8-bit mantissa, `<0.4%` error, exact below 512 ns) rather than growing and sorting multi-million-element arrays after measurement.
 - **Fair thread budgets & payload handling:** All servers align concurrency/polling budgets with `SERVER_THREADS` / CPU affinity and avoid artificial per-RPC channel ping-pong or avoidable heap churn.
 - **Zero-error gating & transparent variance:** Every client validates response lengths, streaming message counts, aggregate bytes, and terminal `OK` status; any error fails the run. Reports present round medians with observed min–max bounds.
