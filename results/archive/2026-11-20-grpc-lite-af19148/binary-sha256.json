@@ -1,7 +1,0 @@
-{
-  "/tmp/opencode/grpc-lite-bench-de94bc0-install/bin/grpc-lite-interop-server": "e1c5e281f53a86afecccc26305bafbb28a0be753273ea301fdce59f2b893e8e9",
-  "/tmp/opencode/grpc-lite-bench-af19148/zig-out/bin/grpc-lite-interop-server": "5b3b5fde4a591df9c519bf1279fe7d70a8956baa821d4fb568390825817fc1c3",
-  "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/bench-client": "888d0a5d8feb091d17bc0f9e6afea6c3033497a27686f713108ff07d2228e5e2",
-  "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/tonic-client": "a0027a09a141d3bb50306ee27f668ade29ced4acb71851a0e46b2ca0dbdc0f4f",
-  "/home/fanmi/.local/share/opencode/worktree/ab40b7/rpc-framework-bench/bin/grpc-native-build/grpc-native": "f38af24bcb5504518ce6126e971d323b5e66a5fd62ce66370bc2c1ab9c49ed9d"
-}

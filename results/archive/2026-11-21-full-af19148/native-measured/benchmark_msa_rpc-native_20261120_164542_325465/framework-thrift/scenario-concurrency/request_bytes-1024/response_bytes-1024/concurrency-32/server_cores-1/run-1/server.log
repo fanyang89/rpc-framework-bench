@@ -1,5 +1,0 @@
-Thrift: Sat Nov 21 01:15:44 2026 TNonblockingServer: Serving with 1 io threads.
-Thrift: Sat Nov 21 01:15:44 2026 TNonblockingServer: using libevent 2.1.12-stable method epoll
-Thrift: Sat Nov 21 01:15:44 2026 TNonblocking: IO thread #0 registered for listen.
-Thrift: Sat Nov 21 01:15:44 2026 TNonblocking: IO thread #0 registered for notify.
-Thrift: Sat Nov 21 01:15:44 2026 TNonblockingServer: IO thread #0 entering loop...

@@ -1,2 +1,0 @@
-I1121 00:45:14.248240 124328     0 /tmp/opencode/brpc-1.18.0/src/brpc/server.cpp:1247 StartInternal] Server[Service] is serving on port=49115.
-I1121 00:45:14.248498 124328     0 /tmp/opencode/brpc-1.18.0/src/brpc/server.cpp:1250 StartInternal] Check out http://msa:49115 in web browser.

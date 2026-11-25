@@ -1,9 +1,0 @@
-identity/experiment_name;identity/benchmark_name;constant/hostname;constant/architecture;constant/transport;input/framework;input/scenario;input/request_bytes;input/response_bytes;input/concurrency;input/server_cores;rep;output/completed;output/errors;output/seconds;output/ops_per_second;output/p50_us;output/p95_us;output/p99_us;output/client_cpu_percent;output/server_cpu_percent;output/payload_mib_s
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;capnp;multicore;1024;1024;128;4;1;2532373;0;5.00072;506402;252.195;375.507;393.701;365.78273321630496;237.6835748010472;989.06640625
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;capnp;multicore;1024;1024;128;4;2;2514423;0;5.0007;502814;254.189;378.853;407.317;365.8132121423598;238.44660797901258;982.05859375
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;capnp;multicore;1024;1024;128;4;3;2528410;0;5.00066;505616;252.786;382.059;399.232;364.1503490068501;236.9614882508993;987.53125
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;thrift;latency;1024;1024;1;1;1;323735;0;5.00001;64746.9;15.219;18.124;19.647;27.70874163920119;39.234369742521075;126.4587890625
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;thrift;latency;1024;1024;1;1;2;326329;0;5.00001;65265.7;14.878;17.904;19.697;27.681279605163446;39.23154522568981;127.4720703125
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;thrift;latency;1024;1024;1;1;3;320965;0;5;64193;15.309;18.384;20.158;28.01175202823427;38.57177221902631;125.376953125
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;tonic;concurrency;1024;1024;32;1;1;348070;0;5.00047;69607.4;472.4;483.36;493.049;180.3974815915675;66.05396033189344;135.951953125
-rpc-native;rpcbenchmark;msa;x86_64;plaintext;tonic;concurrency;1024;1024;32;1;2;348735;0;5.00049;69740.1;471.107;481.978;491.486;180.10101693140467;66.05906697612642;136.2111328125

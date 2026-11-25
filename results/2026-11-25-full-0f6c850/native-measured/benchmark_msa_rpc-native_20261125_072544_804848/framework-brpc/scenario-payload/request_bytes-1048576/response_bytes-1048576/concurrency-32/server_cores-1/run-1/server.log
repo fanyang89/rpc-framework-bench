@@ -1,3 +1,0 @@
-W1125 15:39:59.028848 2537641     0 /tmp/opencode/brpc-1.18.0/src/bthread/bthread.cpp:511 bthread_setconcurrency_by_tag] Fail to set concurrency by tag: 0, tag concurrency should be larger than old oncurrency. old concurrency: 9, new concurrency: 4
-I1125 15:39:59.029527 2537641     0 /tmp/opencode/brpc-1.18.0/src/brpc/server.cpp:1247 StartInternal] Server[Service] is serving on port=26192.
-I1125 15:39:59.029765 2537641     0 /tmp/opencode/brpc-1.18.0/src/brpc/server.cpp:1250 StartInternal] Check out http://msa:26192 in web browser.

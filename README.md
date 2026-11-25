@@ -6,8 +6,7 @@ A reproducible Linux benchmarking suite comparing **8 RPC server stacks** across
 - **Native binary RPC stacks:** `Apache Thrift`, `Cap'n Proto`, `brpc` (`baidu_std`)
 
 > **Looking for the performance results and Benchkit charts?**  
-> Read the full human-readable post-fix report in **[`report/README.md`](report/README.md)** (780 formal runs, 524.3M RPCs, 0 errors, 10 Benchkit PNG/PDF charts, powered by neutral third-party `h2load` across all gRPC Unary matrices).  
-> *(All pre-`2026-11-25` pre-fix datasets are archived & marked invalidated under [`results/archive/`](results/README.md).)*
+> Read the full human-readable post-fix report in **[`report/README.md`](report/README.md)** (780 formal runs, 524.3M RPCs, 0 errors, 10 Benchkit PNG/PDF charts, powered by neutral third-party `h2load` across all gRPC Unary matrices).
 
 ---
 
@@ -50,13 +49,10 @@ rpc-framework-bench/
 │   └── tests/                      # Parameter validation & TLS trust/hostname rejection tests
 ├── report/                         # Human-readable performance report and Benchkit figures
 │   ├── README.md                   # Curated post-fix report with tables, insights, and caveats
-│   ├── figures/                    # 10 publication-grade PNG + PDF Benchkit charts
-│   └── archive/                    # Archived & invalidated pre-fix reports and figures
+│   └── figures/                    # 10 publication-grade PNG + PDF Benchkit charts
 └── results/                        # Raw benchmark datasets
     ├── README.md                   # Dataset index
-    ├── 2026-11-25-h2load-0f6c850/  # Latest primary 780-run formal dataset (h2load Unary + Streaming)
-    ├── 2026-11-25-full-0f6c850/    # Post-fix Go/Tonic/C++-sync client baseline (780 runs)
-    └── archive/                    # Historical pre-fix datasets & spot checks (invalidated)
+    └── 2026-11-25-h2load-0f6c850/  # Latest 780-run formal dataset (h2load Unary + Streaming)
 ```
 
 ---

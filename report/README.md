@@ -29,7 +29,7 @@ This report evaluates **8 RPC server stacks** (`grpc-lite 0f6c850` with OpenSSL 
 | **gRPC Server-Streaming (1 core, 16×1 KiB)** | **Tonic (Rust)** | **44.7k / 53.1k** PT · **39.1k / 43.9k** TLS | Leads all 4 client/transport cells ahead of `grpc-lite` (`44.5k / 48.0k` PT, `37.5k / 34.5k` TLS) and `gRPC-Go` (`39.0k / 36.9k` PT, `31.0k / 29.7k` TLS). |
 | **gRPC Client-Streaming & Bidi (1 core, 16×1 KiB)** | **grpc-lite** / **Tonic** / **gRPC-Go** | **68.4k** client-stream · **8.80k** bidi (Tonic cli) | `grpc-lite` leads Go-client client-stream (`68.4k / 47.7k`) and Tonic-client bidi (`8.80k / 6.98k`); `Tonic` leads Tonic-client TLS client-stream (`47.7k`); `gRPC-Go` leads Go-client bidi (`5.83k / 5.40k`). |
 
-> **Why switching gRPC Unary to neutral `h2load` mattered:** In our earlier post-fix run ([`2026-11-25-full-0f6c850`](../results/2026-11-25-full-0f6c850/README.md)), blocking C++ `grpc-native` added ~`14 µs` of client-side RTT overhead and capped 8-core `grpc-lite` at `425k`, while Go/Tonic clients saturated all 8 client cores (`778%–784% / 800%`) and capped `grpc-lite` at `589k–606k` (and even clipped `Tonic` at `428k`). Replacing those clients with neutral, off-the-shelf **`h2load` (`nghttp2/1.69.0`)** removes client-side bottlenecks without using `grpc-lite`'s own client.
+> **Why switching gRPC Unary to neutral `h2load` mattered:** In earlier runs using the blocking C++ `grpc-native` client and Go/Tonic load generators, client-side overhead added ~`14 µs` of RTT and saturated all 8 client cores (`778%–784% / 800%`), artificially capping 4–8 core `grpc-lite` at `425k–606k` (and clipping `Tonic` at `428k`). Replacing those clients with neutral, off-the-shelf **`h2load` (`nghttp2/1.69.0`)** removes client-side bottlenecks without using `grpc-lite`'s own client.
 
 ---
 
@@ -282,9 +282,7 @@ Because `h2load` is an HTTP/2 Unary tool and cannot perform multi-frame gRPC str
 - **Run-to-run spread:** Median `(max - min) / median` spread across 3 formal rounds is **1.15%** (Part 1), **1.62%** (Part 2), and **0.75%** (Part 3). Largest spreads occur in `Cap'n Proto` 64 KiB (`16.8%`), `grpc-lite` 64 KiB Plaintext (`11.7%`) and 8-core Plaintext (`10.6%`, one thermally lower round at `2.25M` vs `2.48M`/`2.51M`), and `gRPC C++ sync` 1 MiB TLS (`10.3%`). All charts show exact observed min–max whiskers/bands.
 - **Closed-loop measurement:** Does not correct for coordinated omission. Localhost TCP excludes physical NIC latency, packet loss, switch queueing, and NUMA/cross-host effects.
 - **Cross-matrix boundaries:** Do not mix raw throughput across Part 1 (`-m 1`), Part 2 (multiplexed `h2load`), and Part 3 (Go/Tonic streaming).
-- **Historical & baseline comparisons:**
-  - The post-fix Go/Tonic/`grpc-native` client baseline is preserved at [`results/2026-11-25-full-0f6c850/`](../results/2026-11-25-full-0f6c850/README.md).
-  - Pre-`2026-11-25` pre-fix invalidated reports are archived under [`report/archive/2026-11-21-invalidated/`](archive/2026-11-21-invalidated/README.md).
+- **Clean dataset repository:** Earlier pre-fix datasets and client-limited baselines have been removed from the working tree; [`results/2026-11-25-h2load-0f6c850/`](../results/2026-11-25-h2load-0f6c850/README.md) is the sole authoritative dataset in the repository.
 
 ### Reproducing the Benchkit Graphs
 
