@@ -5,7 +5,8 @@ A reproducible Linux benchmarking suite evaluating **8 production RPC server sta
 <p align="center">
   <strong>8 RPC Stacks</strong> &nbsp;·&nbsp;
   <strong>780 Formal Runs</strong> (+260 Smoke) &nbsp;·&nbsp;
-  <strong>524.3M Client-Reported Completions</strong> &nbsp;·&nbsp;
+  <strong>523.2M Client-Reported Completions</strong> &nbsp;·&nbsp;
+  <strong>246.5M Companion-Verified Unary RPCs</strong> &nbsp;·&nbsp;
   <strong>10 Benchkit Charts (PNG + PDF)</strong>
 </p>
 
@@ -21,36 +22,36 @@ A reproducible Linux benchmarking suite evaluating **8 production RPC server sta
 
 > [!TIP]
 > **Want all 10 Benchkit figures, full data tables, and workload-specific selection advice?**  
-> Read the complete curated performance report in **[`report/README.md`](report/README.md)**. Raw machine-readable CSV/JSONL outputs and SHA-256 binary provenance live under [`results/2026-11-25-h2load-0f6c850/`](results/2026-11-25-h2load-0f6c850/README.md).
+> Read the complete curated performance report in **[`report/README.md`](report/README.md)**. Raw machine-readable CSV/JSONL outputs, 465 companion Go validation replays, and SHA-256 binary provenance live under [`results/2026-11-26-h2load-0f6c850/`](results/2026-11-26-h2load-0f6c850/README.md).
 
 ---
 
 ## Executive Scorecard
 
-All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 9955HX** (16 physical cores, `performance` governor, localhost TCP). For gRPC unary rows, **RPC/s means HTTP/2 completions per second** reported by `h2load` (`nghttp2/1.69.0`). MiB/s uses that rate times the configured request and response payload sizes. The archive has no per-RPC trailer or message-length checks for those timed requests. Native and streaming clients count application-checked RPCs.
+All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 9955HX** (16 physical cores, `performance` governor, localhost TCP). For gRPC unary rows, **RPC/s means HTTP/2 completions per second** reported by `h2load` (`nghttp2/1.69.0`, `completion_scope: "http2"`). MiB/s uses that rate times the configured request and response payload sizes. Every unary `h2load` run is paired with an archived companion `bin/bench-client` replay verifying gRPC `OK` and response payload lengths on its own replay calls (`465` formal files, `246.5M` verified unary RPCs, `0` errors), while timed `h2load` rows themselves remain HTTP/2 completion counts. Native and streaming clients count application-checked RPCs inline.
 
 | RPC Stack | Protocol | 1 KiB Latency P50 / P99 (`C=1`, 1c) | 8-Core Plaintext `-m 1` (`C=128`, P99) | 1 MiB Plaintext (`C=32`, 1c) | Multiplexed `h2load` 8c PT / TLS (`1 KiB`) | Server-Stream 1c PT / TLS (`16×1 KiB`, Tonic cli) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| **grpc-lite** (`0f6c850`, Zig) | gRPC / HTTP/2 | 16.0 / 22.0 µs | **1,069k** (**159 µs**) | 2,613 MiB/s | **2.48M / 2.18M** | 48.0k / 34.5k |
-| **Apache Thrift** (`0.25.0`) | Binary / Framed | **15.6 / 21.3 µs** | 984k (226 µs) | **4,441 MiB/s** | — | — |
-| **Cap'n Proto** (`1.5.0`) | Two-party RPC | 17.6 / 23.5 µs | 772k (637 µs) | 3,530 MiB/s | — | — |
-| **brpc** (`1.18.0`) | `baidu_std` | 20.9 / 28.9 µs | 637k (248 µs) | 3,744 MiB/s | — | — |
-| **Tonic** (`0.14.6`, Rust) | gRPC / HTTP/2 | 22.0 / 29.0 µs | 511k (466 µs) | 2,844 MiB/s | 604k / 552k | **53.1k / 43.9k** |
-| **gRPC C++ callback** (`1.84.3`) | gRPC / HTTP/2 | 24.0 / 36.0 µs | 447k (1,240 µs) | 3,209 MiB/s | 571k / 531k | 8.5k / 7.5k |
-| **gRPC-Go** (`1.83.2`) | gRPC / HTTP/2 | 22.0 / 44.0 µs | 405k (1,280 µs) | 3,314 MiB/s | 450k / 452k | 36.9k / 29.7k |
-| **gRPC C++ sync** (`1.84.3`) | gRPC / HTTP/2 | 27.0 / 35.0 µs | 397k (751 µs) | 3,072 MiB/s | 370k / 337k | 8.6k / 7.8k |
+| **grpc-lite** (`0f6c850`, Zig) | gRPC / HTTP/2 | 16.0 / 21.0 µs | **991k** (**201 µs**) | 2,778 MiB/s | **2.52M / 2.16M** | 48.9k / 35.1k |
+| **Apache Thrift** (`0.25.0`) | Binary / Framed | **15.5 / 19.9 µs** | 983k (231 µs) | 4,424 MiB/s | — | — |
+| **Cap'n Proto** (`1.5.0`) | Two-party RPC | 17.5 / 22.8 µs | 759k (993 µs) | **6,380 MiB/s*** | — | — |
+| **brpc** (`1.18.0`) | `baidu_std` | 20.7 / 27.3 µs | 633k (258 µs) | 3,892 MiB/s | — | — |
+| **Tonic** (`0.14.6`, Rust) | gRPC / HTTP/2 | 22.0 / 28.0 µs | 510k (466 µs) | 2,868 MiB/s | 599k / 548k | **54.5k / 43.8k** |
+| **gRPC C++ callback** (`1.84.3`) | gRPC / HTTP/2 | 24.0 / 36.0 µs | 432k (1,270 µs) | 3,011 MiB/s | 566k / 524k | 8.5k / 7.7k |
+| **gRPC-Go** (`1.83.2`) | gRPC / HTTP/2 | 22.0 / 44.0 µs | 406k (1,270 µs) | 3,347 MiB/s | 455k / 451k | 37.1k / 29.8k |
+| **gRPC C++ sync** (`1.84.3`) | gRPC / HTTP/2 | 27.0 / 33.0 µs | 400k (731 µs) | 3,065 MiB/s | 367k / 334k | 8.6k / 7.8k |
 
-*Note: Compare stacks **within each column/matrix** only — Part 1 uses strict 1-connection-per-worker (`-m 1`), Part 2 uses multiplexed HTTP/2 (`-m 16`), and Part 3 uses Go/Tonic streaming clients. Non-HTTP/2 stacks (`—`) are evaluated in Part 1 only.*
+*Note: Compare stacks **within each column/matrix** only — Part 1 uses strict 1-connection-per-worker (`-m 1`), Part 2 uses multiplexed HTTP/2 (`-m 16`), and Part 3 uses Go/Tonic streaming clients. Non-HTTP/2 stacks (`—`) are evaluated in Part 1 only. \*`Cap'n Proto` 1 MiB showed a bimodal 3-round spread (`50.4%`: `3,531–6,744 MiB/s`).*
 
 ### Key Takeaways
 
-- **HTTP/2 + gRPC can match raw binary protocols on latency & 8-core throughput:** Freed from blocking C++ gRPC client overhead (`~14 µs`), **`grpc-lite` hits `16.0 µs` P50** (virtually tied with Apache Thrift at `15.6 µs`) and scales **`8.13×` to `1.07M RPC/s`** (`159 µs` P99) on 8 cores even with multiplexing disabled (`-m 1`).
-- **Multiplexed gRPC throughput:** `grpc-lite` delivers **1.80M plaintext / 1.53M TLS RPC/s** in the 4-core configuration. In the 8-core configuration it reaches **2.48M / 2.18M RPC/s**, **4.1× / 3.9×** Tonic's throughput under the same load settings.
+- **HTTP/2 + gRPC can match raw binary protocols on latency & 8-core throughput:** Freed from blocking C++ gRPC client overhead (`~14 µs`), **`grpc-lite` hits `16.0 µs` P50** (within `0.5 µs` of Apache Thrift at `15.5 µs`) and scales **`7.49×` to `991k RPC/s`** (`201 µs` P99) on 8 cores even with multiplexing disabled (`-m 1`).
+- **Multiplexed gRPC throughput:** `grpc-lite` delivers **1.72M plaintext / 1.45M TLS RPC/s** in the 4-core configuration. In the 8-core configuration it reaches **2.52M / 2.16M RPC/s** (`<1%` 3-round spread), **4.2× / 3.95×** Tonic's throughput under the same load settings.
 - **No single winner across every workload:**
-  - **Bulk plaintext & non-gRPC binary:** **Apache Thrift** leads 64 KiB (`5,214 MiB/s`) and 1 MiB (`4,441 MiB/s`, `15.4 ms` P99).
-  - **Multiplexed gRPC large payloads (64 KiB / 1 MiB):** **gRPC C++ (callback)** leads bandwidth (`3,431 / 2,329 MiB/s` @ 64 KiB; `3,595 / 2,262 MiB/s` @ 1 MiB), while **`grpc-lite`** delivers **4×–7× tighter P99** (`9–14 ms` @ 64 KiB; `34–51 ms` @ 1 MiB).
-  - **Server-streaming & large uploads:** **Tonic (Rust)** leads server-streaming across all 4 client/transport cells (`53.1k` PT / `43.9k` TLS) and dominates `64 KiB → 64 B` uploads (`57.2k` PT / `38.6k` TLS).
-  - **Zero TLS penalty in Go:** **gRPC-Go (`1.83.2`)** maintains ~100% TLS parity on 1–8 cores (`450k` PT vs `452k` TLS @ 8c) and leads Go-client bidi ping-pong (`5.83k / 5.40k`).
+  - **Bulk plaintext & non-gRPC binary:** **Apache Thrift** leads 64 KiB (`5,276 MiB/s`) with steady 1 MiB throughput (`4,424 MiB/s`, `15.4 ms` P99), while **Cap'n Proto** posts the highest 1 MiB median (`6,380 MiB/s`, bimodal spread).
+  - **Multiplexed gRPC large payloads (64 KiB / 1 MiB):** **gRPC C++ (callback)** leads bandwidth (`3,422 / 2,325 MiB/s` @ 64 KiB; `3,539 / 2,237 MiB/s` @ 1 MiB), while **`grpc-lite`** delivers **4×–9× tighter P99** (`8.5–13.9 ms` @ 64 KiB; `34.0–52.1 ms` @ 1 MiB).
+  - **Server-streaming & large uploads:** **Tonic (Rust)** leads server-streaming across all 4 client/transport cells (`54.5k` PT / `43.8k` TLS) and dominates `64 KiB → 64 B` uploads (`57.5k` PT / `38.8k` TLS).
+  - **Zero TLS penalty in Go:** **gRPC-Go (`1.83.2`)** maintains ~99%–100% TLS parity on 1–8 cores (`455k` PT vs `451k` TLS @ 8c) and leads Go-client bidi ping-pong (`5.84k / 5.45k`).
 
 ---
 
@@ -81,7 +82,7 @@ All figures are generated deterministically via [Benchkit](https://github.com/op
 | **grpc-lite** | gRPC server | `0f6c850` (Zig `0.17.0`) | HTTP/2 + OpenSSL 4.0.3 | Per-core `io_uring` reactors (`ReleaseFast`) |
 | **Tonic** | gRPC server & streaming client | `0.14.6` (Rust `1.100.0`) | HTTP/2 (`hyper`/`h2`) + `ring` | Tokio `1.53.1` multi-thread runtime (`--locked`) |
 | **gRPC C++** | gRPC server (`callback` & `sync`) | `1.84.3` (GCC `16.2.1`) | HTTP/2 + BoringSSL/OpenSSL | `SERVER_THREADS`-tuned CQs / `ResourceQuota` |
-| **gRPC-Go** | gRPC server & streaming client | `1.83.2` (Go `1.26.2`) | HTTP/2 + Go `crypto/tls` | Goroutines with matched `GOMAXPROCS` |
+| **gRPC-Go** | gRPC server, streaming & unary validation client | `1.83.2` (Go `1.26.2`) | HTTP/2 + Go `crypto/tls` | Goroutines with matched `GOMAXPROCS` |
 | **Apache Thrift** | Native server & client | `0.25.0` (GCC `16.2.1`) | Framed binary TCP | Nonblocking I/O worker threads |
 | **Cap'n Proto** | Native server & client | `1.5.0` (GCC `16.2.1`) | Two-party RPC over TCP | Pre-bound `SO_REUSEPORT` loops (`TCP_NODELAY`) |
 | **brpc** | Native server & client | `1.18.0` (GCC `16.2.1`) | `baidu_std` over TCP | `bthread` M:N work-stealing scheduler |
@@ -105,9 +106,9 @@ Benchmark suites are easy to distort unintentionally. This suite enforces six st
 1. **Neutral Third-Party Load Generator (`h2load`):** No gRPC server is benchmarked with its own client. Using off-the-shelf `h2load` (`nghttp2/1.69.0`) eliminates the ~`14 µs` client RTT penalty of blocking C++ gRPC and the 8-core client CPU ceiling (`780%/800%`) of Go/Tonic load generators, saturating all 5 gRPC servers to **92%–100% server core CPU**.
 2. **Strict Topology Parity Across Protocols:** In the 8-framework comparison (Part 1), `h2load` is locked to **`-m 1`** (1 in-flight RPC per TCP connection) so connection count and concurrency (`C = 1, 8, 32, 128`) match the native C++ Thrift, Cap'n Proto, and brpc clients apples-to-apples. HTTP/2 multiplexing (`-m 16`) is evaluated separately in Part 2.
 3. **Physical Core Isolation & Asymmetric Headroom:** Every campaign asserts via `/sys/devices/system/cpu/*/topology/` that CPUs `0–15` are 16 distinct physical cores (no SMT sibling sharing). Part 1 & 3 pin clients to `0–7` and servers to `15` / `12–15` / `8–15`; Part 2 allocates **12 client cores (`0–11`)** for `1 / 2 / 4` server cores and `8` client cores (`0–7`) for `8` server cores. Server execution order rotates across rounds.
-4. **Two levels of unary validation:** `curl` checks one response before timing. `h2load` reports HTTP status and stream completion during timing. Current runners then replay the workload with `bin/bench-client`, matching CPU placement, connections, streams per connection, payload sizes, TLS mode, warmup and duration. The Go client requires one unary message of the requested payload length and final gRPC `OK` on every call. Its achieved rate can differ from `h2load`'s. Only the replay's own calls are verified.
+4. **Two levels of unary validation:** `curl` checks one response before timing. `h2load` reports HTTP status and stream completion during timing (`completion_scope: "http2"`). Both unary runners then replay every workload with `bin/bench-client`, matching CPU placement, connections, streams per connection, payload sizes, TLS mode, warmup and duration (`465` formal replays archived in [`results/2026-11-26-h2load-0f6c850/`](results/2026-11-26-h2load-0f6c850/README.md), `246.5M` verified unary RPCs, `0` errors). The Go client requires one unary message of the requested payload length and final gRPC `OK` on every call. Its achieved rate can differ from `h2load`'s. Only the replay's own calls are verified.
 5. **Unbiased Timing & Zero-Allocation Histograms:** All built-in clients (`go/client`, `rust-tonic`, `native-cpp/load.h`) connect eagerly, synchronize workers on a post-warmup monotonic barrier, compute unbiased per-worker active-time throughput `sum(completed_i / active_seconds_i)`, and record latencies in fixed-memory O(1) log-linear histograms (`<0.4%` error, exact `<512 ns`) to avoid post-run sort pauses.
-6. **Transparent Variance & Full Provenance:** Every formal configuration runs **3 × 5 s** rounds after warmup (preceded by a full 260-case `--smoke` gate). All tables report medians and every Benchkit chart renders full observed min–max bounds (median three-round spread: **`1.15%`** Part 1, **`1.62%`** Part 2, **`0.75%`** Part 3). Binary SHA-256 manifests, `lscpu`, compiler versions, and CPU governors are archived alongside each run.
+6. **Transparent Variance & Full Provenance:** Every formal configuration runs **3 × 5 s** rounds after warmup (preceded by a full 260-case `--smoke` gate). All tables report medians and every Benchkit chart renders full observed min–max bounds (median three-round spread: **`0.99%`** Part 1, **`1.32%`** Part 2, **`0.85%`** Part 3). Binary SHA-256 manifests, `lscpu`, compiler versions, and CPU governors are archived alongside each run.
 
 ---
 
@@ -170,7 +171,7 @@ python3 harness/campaign_extended.py --streaming-only --output results/sweeps/st
 
 ```sh
 /path/to/benchkit-venv/bin/python harness/plot_report.py \
-  --dataset results/2026-11-25-h2load-0f6c850 \
+  --dataset results/2026-11-26-h2load-0f6c850 \
   --output report/figures
 ```
 
@@ -196,6 +197,7 @@ rpc-framework-bench/
 │   ├── campaign_native.py          # Benchkit 8-framework Plaintext driver (native C++ + h2load -m 1)
 │   ├── campaign_h2load.py          # 240-run neutral h2load (nghttp2) multiplexed gRPC Unary driver
 │   ├── campaign_extended.py        # Extended / streaming-only gRPC driver (Go & Tonic clients)
+│   ├── unary_validation.py         # Companion bin/bench-client gRPC unary replay validator
 │   ├── plot_report.py              # Generates all PNG/PDF report figures via Benchkit lwchart
 │   ├── certificates.sh             # Generates local CA and localhost SAN TLS certificates
 │   ├── summarize/                  # Go JSONL summarizer (summarize.go) + unit tests
@@ -205,7 +207,7 @@ rpc-framework-bench/
 │   └── figures/                    # 10 publication-grade PNG + PDF Benchkit charts
 └── results/                        # Raw benchmark datasets
     ├── README.md                   # Dataset index
-    └── 2026-11-25-h2load-0f6c850/  # Authoritative 780-run formal dataset (h2load Unary + Streaming)
+    └── 2026-11-26-h2load-0f6c850/  # Authoritative 780-run formal dataset + 465 unary validation replays
 ```
 
 </details>

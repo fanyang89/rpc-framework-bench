@@ -1,0 +1,242 @@
+[  1/240] Plaintext multicore  1c 1024->1024 grpc-lite          r1:    457,790 req/s (    894 MiB/s) | P50=  1670us P99=  1700us | srv= 100%/100% cli=  92%/1200%
+[  2/240] Plaintext multicore  1c 1024->1024 tonic              r1:     89,049 req/s (    174 MiB/s) | P50=  3620us P99= 90120us | srv= 100%/100% cli=  59%/1200%
+[  3/240] Plaintext multicore  1c 1024->1024 grpc-cpp-callback  r1:     80,397 req/s (    157 MiB/s) | P50=  3680us P99= 73640us | srv= 100%/100% cli=  69%/1200%
+[  4/240] Plaintext multicore  1c 1024->1024 grpc-cpp-sync      r1:     60,889 req/s (    119 MiB/s) | P50= 10800us P99= 59120us | srv= 100%/100% cli=  54%/1200%
+[  5/240] Plaintext multicore  1c 1024->1024 grpc-go            r1:     75,638 req/s (    148 MiB/s) | P50= 10300us P99= 22390us | srv= 100%/100% cli=  63%/1200%
+[  6/240] Plaintext multicore  1c 1024->1024 tonic              r2:     90,716 req/s (    177 MiB/s) | P50=  3650us P99= 83350us | srv= 100%/100% cli=  61%/1200%
+[  7/240] Plaintext multicore  1c 1024->1024 grpc-cpp-callback  r2:     80,811 req/s (    158 MiB/s) | P50=  3600us P99= 73140us | srv= 100%/100% cli=  68%/1200%
+[  8/240] Plaintext multicore  1c 1024->1024 grpc-cpp-sync      r2:     60,373 req/s (    118 MiB/s) | P50= 10800us P99= 63640us | srv= 100%/100% cli=  56%/1200%
+[  9/240] Plaintext multicore  1c 1024->1024 grpc-go            r2:     75,533 req/s (    148 MiB/s) | P50= 10220us P99= 23530us | srv= 100%/100% cli=  63%/1200%
+[ 10/240] Plaintext multicore  1c 1024->1024 grpc-lite          r2:    462,783 req/s (    904 MiB/s) | P50=  1650us P99=  1680us | srv= 100%/100% cli=  94%/1200%
+[ 11/240] Plaintext multicore  1c 1024->1024 grpc-cpp-callback  r3:     81,449 req/s (    159 MiB/s) | P50=  3660us P99= 70620us | srv= 100%/100% cli=  66%/1200%
+[ 12/240] Plaintext multicore  1c 1024->1024 grpc-cpp-sync      r3:     60,879 req/s (    119 MiB/s) | P50= 10900us P99= 59170us | srv= 100%/100% cli=  52%/1200%
+[ 13/240] Plaintext multicore  1c 1024->1024 grpc-go            r3:     75,268 req/s (    147 MiB/s) | P50= 10310us P99= 23200us | srv= 100%/100% cli=  69%/1200%
+[ 14/240] Plaintext multicore  1c 1024->1024 grpc-lite          r3:    453,427 req/s (    886 MiB/s) | P50=  1690us P99=  1720us | srv= 100%/100% cli=  92%/1200%
+[ 15/240] Plaintext multicore  1c 1024->1024 tonic              r3:     89,306 req/s (    174 MiB/s) | P50=  3630us P99= 85690us | srv= 100%/100% cli=  59%/1200%
+[ 16/240] Plaintext multicore  2c 1024->1024 tonic              r1:    174,028 req/s (    340 MiB/s) | P50=  3870us P99= 15590us | srv= 199%/200% cli= 100%/1200%
+[ 17/240] Plaintext multicore  2c 1024->1024 grpc-cpp-callback  r1:    159,596 req/s (    312 MiB/s) | P50=  3050us P99= 35230us | srv= 200%/200% cli= 122%/1200%
+[ 18/240] Plaintext multicore  2c 1024->1024 grpc-cpp-sync      r1:    111,949 req/s (    219 MiB/s) | P50=  6230us P99= 20770us | srv= 198%/200% cli=  60%/1200%
+[ 19/240] Plaintext multicore  2c 1024->1024 grpc-go            r1:    139,121 req/s (    272 MiB/s) | P50=  5050us P99= 15770us | srv= 190%/200% cli= 109%/1200%
+[ 20/240] Plaintext multicore  2c 1024->1024 grpc-lite          r1:    902,922 req/s (  1,764 MiB/s) | P50=   814us P99=   938us | srv= 199%/200% cli= 172%/1200%
+[ 21/240] Plaintext multicore  2c 1024->1024 grpc-cpp-callback  r2:    159,514 req/s (    312 MiB/s) | P50=  3040us P99= 36550us | srv= 200%/200% cli= 126%/1200%
+[ 22/240] Plaintext multicore  2c 1024->1024 grpc-cpp-sync      r2:    114,706 req/s (    224 MiB/s) | P50=  6060us P99= 20830us | srv= 198%/200% cli=  59%/1200%
+[ 23/240] Plaintext multicore  2c 1024->1024 grpc-go            r2:    138,838 req/s (    271 MiB/s) | P50=  5030us P99= 15350us | srv= 189%/200% cli= 108%/1200%
+[ 24/240] Plaintext multicore  2c 1024->1024 grpc-lite          r2:    909,740 req/s (  1,777 MiB/s) | P50=   914us P99=   958us | srv= 200%/200% cli= 172%/1200%
+[ 25/240] Plaintext multicore  2c 1024->1024 tonic              r2:    174,153 req/s (    340 MiB/s) | P50=  3840us P99= 16510us | srv= 198%/200% cli= 106%/1200%
+[ 26/240] Plaintext multicore  2c 1024->1024 grpc-cpp-sync      r3:    113,843 req/s (    222 MiB/s) | P50=  6040us P99= 21280us | srv= 197%/200% cli=  60%/1200%
+[ 27/240] Plaintext multicore  2c 1024->1024 grpc-go            r3:    136,799 req/s (    267 MiB/s) | P50=  5100us P99= 16430us | srv= 186%/200% cli= 102%/1200%
+[ 28/240] Plaintext multicore  2c 1024->1024 grpc-lite          r3:    913,114 req/s (  1,783 MiB/s) | P50=  1010us P99=  1120us | srv= 200%/200% cli= 182%/1200%
+[ 29/240] Plaintext multicore  2c 1024->1024 tonic              r3:    173,802 req/s (    339 MiB/s) | P50=  3900us P99= 16000us | srv= 199%/200% cli= 103%/1200%
+[ 30/240] Plaintext multicore  2c 1024->1024 grpc-cpp-callback  r3:    158,035 req/s (    309 MiB/s) | P50=  3030us P99= 37660us | srv= 200%/200% cli= 127%/1200%
+[ 31/240] Plaintext multicore  4c 1024->1024 grpc-cpp-callback  r1:    314,566 req/s (    614 MiB/s) | P50=  1360us P99= 48250us | srv= 399%/400% cli= 217%/1200%
+[ 32/240] Plaintext multicore  4c 1024->1024 grpc-cpp-sync      r1:    205,475 req/s (    401 MiB/s) | P50=  6990us P99= 21050us | srv= 398%/400% cli=  70%/1200%
+[ 33/240] Plaintext multicore  4c 1024->1024 grpc-go            r1:    263,089 req/s (    514 MiB/s) | P50=  5300us P99= 20740us | srv= 376%/400% cli= 184%/1200%
+[ 34/240] Plaintext multicore  4c 1024->1024 grpc-lite          r1:  1,728,642 req/s (  3,376 MiB/s) | P50=   864us P99=  1050us | srv= 400%/400% cli= 381%/1200%
+[ 35/240] Plaintext multicore  4c 1024->1024 tonic              r1:    339,239 req/s (    663 MiB/s) | P50=  3860us P99= 14180us | srv= 395%/400% cli= 200%/1200%
+[ 36/240] Plaintext multicore  4c 1024->1024 grpc-cpp-sync      r2:    205,174 req/s (    401 MiB/s) | P50=  6960us P99= 20870us | srv= 397%/400% cli=  72%/1200%
+[ 37/240] Plaintext multicore  4c 1024->1024 grpc-go            r2:    266,710 req/s (    521 MiB/s) | P50=  5350us P99= 18300us | srv= 380%/400% cli= 182%/1200%
+[ 38/240] Plaintext multicore  4c 1024->1024 grpc-lite          r2:  1,722,504 req/s (  3,364 MiB/s) | P50=   873us P99=  1060us | srv= 400%/400% cli= 386%/1200%
+[ 39/240] Plaintext multicore  4c 1024->1024 tonic              r2:    340,764 req/s (    666 MiB/s) | P50=  3880us P99= 14200us | srv= 394%/400% cli= 191%/1200%
+[ 40/240] Plaintext multicore  4c 1024->1024 grpc-cpp-callback  r2:    315,043 req/s (    615 MiB/s) | P50=  1400us P99= 44010us | srv= 399%/400% cli= 224%/1200%
+[ 41/240] Plaintext multicore  4c 1024->1024 grpc-go            r3:    265,748 req/s (    519 MiB/s) | P50=  5350us P99= 18950us | srv= 376%/400% cli= 184%/1200%
+[ 42/240] Plaintext multicore  4c 1024->1024 grpc-lite          r3:  1,718,583 req/s (  3,357 MiB/s) | P50=   765us P99=  1460us | srv= 400%/400% cli= 375%/1200%
+[ 43/240] Plaintext multicore  4c 1024->1024 tonic              r3:    341,565 req/s (    667 MiB/s) | P50=  3890us P99= 13850us | srv= 395%/400% cli= 197%/1200%
+[ 44/240] Plaintext multicore  4c 1024->1024 grpc-cpp-callback  r3:    318,295 req/s (    622 MiB/s) | P50=  1600us P99= 40120us | srv= 399%/400% cli= 228%/1200%
+[ 45/240] Plaintext multicore  4c 1024->1024 grpc-cpp-sync      r3:    202,651 req/s (    396 MiB/s) | P50=  7030us P99= 21160us | srv= 398%/400% cli=  77%/1200%
+[ 46/240] Plaintext multicore  8c 1024->1024 grpc-cpp-sync      r1:    373,437 req/s (    729 MiB/s) | P50=  3720us P99= 14340us | srv= 788%/800% cli= 124%/800%
+[ 47/240] Plaintext multicore  8c 1024->1024 grpc-go            r1:    456,454 req/s (    892 MiB/s) | P50=  2730us P99= 15940us | srv= 754%/800% cli= 274%/800%
+[ 48/240] Plaintext multicore  8c 1024->1024 grpc-lite          r1:  2,533,208 req/s (  4,948 MiB/s) | P50=   464us P99=  2770us | srv= 752%/800% cli= 637%/800%
+[ 49/240] Plaintext multicore  8c 1024->1024 tonic              r1:    598,964 req/s (  1,170 MiB/s) | P50=  2330us P99=  7190us | srv= 783%/800% cli= 354%/800%
+[ 50/240] Plaintext multicore  8c 1024->1024 grpc-cpp-callback  r1:    566,000 req/s (  1,105 MiB/s) | P50=   393us P99= 30380us | srv= 794%/800% cli= 346%/800%
+[ 51/240] Plaintext multicore  8c 1024->1024 grpc-go            r2:    453,390 req/s (    886 MiB/s) | P50=  2780us P99= 15410us | srv= 747%/800% cli= 277%/800%
+[ 52/240] Plaintext multicore  8c 1024->1024 grpc-lite          r2:  2,523,085 req/s (  4,928 MiB/s) | P50=   493us P99=  2800us | srv= 736%/800% cli= 629%/800%
+[ 53/240] Plaintext multicore  8c 1024->1024 tonic              r2:    600,026 req/s (  1,172 MiB/s) | P50=  2320us P99=  7200us | srv= 781%/800% cli= 353%/800%
+[ 54/240] Plaintext multicore  8c 1024->1024 grpc-cpp-callback  r2:    565,227 req/s (  1,104 MiB/s) | P50=   360us P99= 32740us | srv= 794%/800% cli= 342%/800%
+[ 55/240] Plaintext multicore  8c 1024->1024 grpc-cpp-sync      r2:    367,399 req/s (    718 MiB/s) | P50=  3750us P99= 15160us | srv= 789%/800% cli= 128%/800%
+[ 56/240] Plaintext multicore  8c 1024->1024 grpc-lite          r3:  2,524,270 req/s (  4,930 MiB/s) | P50=   457us P99=  2920us | srv= 742%/800% cli= 639%/800%
+[ 57/240] Plaintext multicore  8c 1024->1024 tonic              r3:    596,815 req/s (  1,166 MiB/s) | P50=  2330us P99=  7190us | srv= 783%/800% cli= 354%/800%
+[ 58/240] Plaintext multicore  8c 1024->1024 grpc-cpp-callback  r3:    569,611 req/s (  1,113 MiB/s) | P50=   366us P99= 30870us | srv= 794%/800% cli= 347%/800%
+[ 59/240] Plaintext multicore  8c 1024->1024 grpc-cpp-sync      r3:    367,129 req/s (    717 MiB/s) | P50=  3790us P99= 14380us | srv= 790%/800% cli= 128%/800%
+[ 60/240] Plaintext multicore  8c 1024->1024 grpc-go            r3:    454,913 req/s (    889 MiB/s) | P50=  2780us P99= 15700us | srv= 756%/800% cli= 277%/800%
+[ 61/240] Plaintext payload    1c 65536->65536 grpc-go            r1:     10,478 req/s (  1,310 MiB/s) | P50= 10740us P99= 97490us | srv= 100%/100% cli=  54%/1200%
+[ 62/240] Plaintext payload    1c 65536->65536 grpc-lite          r1:     22,609 req/s (  2,826 MiB/s) | P50=  8380us P99=  9120us | srv= 100%/100% cli=  98%/1200%
+[ 63/240] Plaintext payload    1c 65536->65536 tonic              r1:     22,533 req/s (  2,817 MiB/s) | P50= 10990us P99= 11450us | srv= 100%/100% cli=  98%/1200%
+[ 64/240] Plaintext payload    1c 65536->65536 grpc-cpp-callback  r1:     27,437 req/s (  3,430 MiB/s) | P50=  3470us P99= 74820us | srv= 100%/100% cli=  99%/1200%
+[ 65/240] Plaintext payload    1c 65536->65536 grpc-cpp-sync      r1:     23,479 req/s (  2,935 MiB/s) | P50=  6650us P99= 47240us | srv= 100%/100% cli=  87%/1200%
+[ 66/240] Plaintext payload    1c 65536->65536 grpc-lite          r2:     24,295 req/s (  3,037 MiB/s) | P50=  7760us P99=  8470us | srv= 100%/100% cli= 102%/1200%
+[ 67/240] Plaintext payload    1c 65536->65536 tonic              r2:     22,634 req/s (  2,829 MiB/s) | P50= 10910us P99= 11470us | srv= 100%/100% cli= 104%/1200%
+[ 68/240] Plaintext payload    1c 65536->65536 grpc-cpp-callback  r2:     27,376 req/s (  3,422 MiB/s) | P50=  3460us P99= 73050us | srv= 100%/100% cli= 102%/1200%
+[ 69/240] Plaintext payload    1c 65536->65536 grpc-cpp-sync      r2:     22,783 req/s (  2,848 MiB/s) | P50=  6890us P99= 46450us | srv= 100%/100% cli=  85%/1200%
+[ 70/240] Plaintext payload    1c 65536->65536 grpc-go            r2:     10,449 req/s (  1,306 MiB/s) | P50= 11830us P99= 89230us | srv= 100%/100% cli=  49%/1200%
+[ 71/240] Plaintext payload    1c 65536->65536 tonic              r3:     22,830 req/s (  2,854 MiB/s) | P50= 10820us P99= 11380us | srv= 100%/100% cli= 103%/1200%
+[ 72/240] Plaintext payload    1c 65536->65536 grpc-cpp-callback  r3:     26,794 req/s (  3,349 MiB/s) | P50=  3440us P99= 75520us | srv= 100%/100% cli= 102%/1200%
+[ 73/240] Plaintext payload    1c 65536->65536 grpc-cpp-sync      r3:     23,134 req/s (  2,892 MiB/s) | P50=  6690us P99= 46980us | srv= 100%/100% cli=  86%/1200%
+[ 74/240] Plaintext payload    1c 65536->65536 grpc-go            r3:     10,474 req/s (  1,309 MiB/s) | P50= 10940us P99=101800us | srv= 100%/100% cli=  53%/1200%
+[ 75/240] Plaintext payload    1c 65536->65536 grpc-lite          r3:     25,253 req/s (  3,157 MiB/s) | P50=  7460us P99=  8120us | srv= 100%/100% cli= 108%/1200%
+[ 76/240] Plaintext payload    1c 1048576->1048576 grpc-lite          r1:      1,521 req/s (  3,042 MiB/s) | P50= 31510us P99= 33970us | srv= 100%/100% cli= 101%/1200%
+[ 77/240] Plaintext payload    1c 1048576->1048576 tonic              r1:      1,379 req/s (  2,758 MiB/s) | P50= 27500us P99=133540us | srv= 100%/100% cli=  84%/1200%
+[ 78/240] Plaintext payload    1c 1048576->1048576 grpc-cpp-callback  r1:      1,781 req/s (  3,562 MiB/s) | P50=  5340us P99=152910us | srv= 100%/100% cli=  89%/1200%
+[ 79/240] Plaintext payload    1c 1048576->1048576 grpc-cpp-sync      r1:      1,764 req/s (  3,528 MiB/s) | P50= 17010us P99=141020us | srv= 100%/100% cli=  87%/1200%
+[ 80/240] Plaintext payload    1c 1048576->1048576 grpc-go            r1:      1,690 req/s (  3,381 MiB/s) | P50= 12370us P99=252120us | srv= 100%/100% cli=  90%/1200%
+[ 81/240] Plaintext payload    1c 1048576->1048576 tonic              r2:      1,398 req/s (  2,797 MiB/s) | P50= 22570us P99= 80660us | srv= 100%/100% cli=  73%/1200%
+[ 82/240] Plaintext payload    1c 1048576->1048576 grpc-cpp-callback  r2:      1,742 req/s (  3,485 MiB/s) | P50=  6760us P99=163720us | srv= 100%/100% cli=  94%/1200%
+[ 83/240] Plaintext payload    1c 1048576->1048576 grpc-cpp-sync      r2:      1,599 req/s (  3,198 MiB/s) | P50= 20280us P99=147140us | srv= 100%/100% cli=  82%/1200%
+[ 84/240] Plaintext payload    1c 1048576->1048576 grpc-go            r2:      1,690 req/s (  3,379 MiB/s) | P50= 11570us P99=231510us | srv= 100%/100% cli=  91%/1200%
+[ 85/240] Plaintext payload    1c 1048576->1048576 grpc-lite          r2:      1,607 req/s (  3,215 MiB/s) | P50= 29760us P99= 31420us | srv= 100%/100% cli= 113%/1200%
+[ 86/240] Plaintext payload    1c 1048576->1048576 grpc-cpp-callback  r3:      1,769 req/s (  3,539 MiB/s) | P50=  5670us P99=186510us | srv= 100%/100% cli=  88%/1200%
+[ 87/240] Plaintext payload    1c 1048576->1048576 grpc-cpp-sync      r3:      1,746 req/s (  3,492 MiB/s) | P50= 17480us P99=144170us | srv= 100%/100% cli=  87%/1200%
+[ 88/240] Plaintext payload    1c 1048576->1048576 grpc-go            r3:      1,669 req/s (  3,337 MiB/s) | P50= 12200us P99=212300us | srv= 100%/100% cli=  90%/1200%
+[ 89/240] Plaintext payload    1c 1048576->1048576 grpc-lite          r3:      1,482 req/s (  2,963 MiB/s) | P50= 32080us P99= 35600us | srv= 100%/100% cli= 106%/1200%
+[ 90/240] Plaintext payload    1c 1048576->1048576 tonic              r3:      1,387 req/s (  2,774 MiB/s) | P50= 26350us P99=132110us | srv= 100%/100% cli=  77%/1200%
+[ 91/240] Plaintext asymmetric 1c 64->65536 tonic              r1:     28,005 req/s (  1,752 MiB/s) | P50=  7660us P99=  9500us | srv= 100%/100% cli=  57%/1200%
+[ 92/240] Plaintext asymmetric 1c 64->65536 grpc-cpp-callback  r1:     41,649 req/s (  2,606 MiB/s) | P50=  3560us P99= 34110us | srv= 100%/100% cli=  72%/1200%
+[ 93/240] Plaintext asymmetric 1c 64->65536 grpc-cpp-sync      r1:     38,965 req/s (  2,438 MiB/s) | P50=  4580us P99= 17610us | srv= 100%/100% cli=  64%/1200%
+[ 94/240] Plaintext asymmetric 1c 64->65536 grpc-go            r1:     14,877 req/s (    931 MiB/s) | P50= 10810us P99= 21450us | srv= 100%/100% cli=  29%/1200%
+[ 95/240] Plaintext asymmetric 1c 64->65536 grpc-lite          r1:     48,670 req/s (  3,045 MiB/s) | P50=  3940us P99=  4140us | srv= 100%/100% cli=  60%/1200%
+[ 96/240] Plaintext asymmetric 1c 64->65536 grpc-cpp-callback  r2:     41,127 req/s (  2,573 MiB/s) | P50=  3600us P99= 37100us | srv= 100%/100% cli=  69%/1200%
+[ 97/240] Plaintext asymmetric 1c 64->65536 grpc-cpp-sync      r2:     38,804 req/s (  2,428 MiB/s) | P50=  4580us P99= 17610us | srv= 100%/100% cli=  68%/1200%
+[ 98/240] Plaintext asymmetric 1c 64->65536 grpc-go            r2:     14,750 req/s (    923 MiB/s) | P50= 10880us P99= 21450us | srv= 100%/100% cli=  30%/1200%
+[ 99/240] Plaintext asymmetric 1c 64->65536 grpc-lite          r2:     48,162 req/s (  3,013 MiB/s) | P50=  4010us P99=  4190us | srv= 100%/100% cli=  65%/1200%
+[100/240] Plaintext asymmetric 1c 64->65536 tonic              r2:     28,380 req/s (  1,776 MiB/s) | P50=  8630us P99=  9260us | srv= 100%/100% cli=  59%/1200%
+[101/240] Plaintext asymmetric 1c 64->65536 grpc-cpp-sync      r3:     39,437 req/s (  2,467 MiB/s) | P50=  4530us P99= 16580us | srv= 100%/100% cli=  62%/1200%
+[102/240] Plaintext asymmetric 1c 64->65536 grpc-go            r3:     14,847 req/s (    929 MiB/s) | P50= 10860us P99= 21550us | srv= 100%/100% cli=  32%/1200%
+[103/240] Plaintext asymmetric 1c 64->65536 grpc-lite          r3:     46,550 req/s (  2,912 MiB/s) | P50=  4120us P99=  4330us | srv= 100%/100% cli=  57%/1200%
+[104/240] Plaintext asymmetric 1c 64->65536 tonic              r3:     28,328 req/s (  1,772 MiB/s) | P50=  8610us P99=  9170us | srv= 100%/100% cli=  61%/1200%
+[105/240] Plaintext asymmetric 1c 64->65536 grpc-cpp-callback  r3:     40,268 req/s (  2,519 MiB/s) | P50=  3530us P99= 40760us | srv= 100%/100% cli=  67%/1200%
+[106/240] Plaintext asymmetric 1c 65536->64 grpc-cpp-callback  r1:     41,502 req/s (  2,596 MiB/s) | P50=  3140us P99= 47670us | srv= 100%/100% cli= 110%/1200%
+[107/240] Plaintext asymmetric 1c 65536->64 grpc-cpp-sync      r1:     37,344 req/s (  2,336 MiB/s) | P50=  4910us P99= 11230us | srv= 100%/100% cli= 105%/1200%
+[108/240] Plaintext asymmetric 1c 65536->64 grpc-go            r1:     29,013 req/s (  1,815 MiB/s) | P50=  6870us P99= 10640us | srv= 100%/100% cli=  83%/1200%
+[109/240] Plaintext asymmetric 1c 65536->64 grpc-lite          r1:     47,740 req/s (  2,987 MiB/s) | P50=  3940us P99=  4350us | srv= 100%/100% cli= 157%/1200%
+[110/240] Plaintext asymmetric 1c 65536->64 tonic              r1:     57,534 req/s (  3,599 MiB/s) | P50=  4310us P99=  4480us | srv= 100%/100% cli= 130%/1200%
+[111/240] Plaintext asymmetric 1c 65536->64 grpc-cpp-sync      r2:     37,052 req/s (  2,318 MiB/s) | P50=  4960us P99= 10770us | srv= 100%/100% cli= 104%/1200%
+[112/240] Plaintext asymmetric 1c 65536->64 grpc-go            r2:     28,826 req/s (  1,803 MiB/s) | P50=  6910us P99= 10830us | srv= 100%/100% cli=  84%/1200%
+[113/240] Plaintext asymmetric 1c 65536->64 grpc-lite          r2:     48,092 req/s (  3,009 MiB/s) | P50=  3910us P99=  4270us | srv= 100%/100% cli= 178%/1200%
+[114/240] Plaintext asymmetric 1c 65536->64 tonic              r2:     57,914 req/s (  3,623 MiB/s) | P50=  4260us P99=  4480us | srv= 100%/100% cli= 155%/1200%
+[115/240] Plaintext asymmetric 1c 65536->64 grpc-cpp-callback  r2:     40,641 req/s (  2,543 MiB/s) | P50=  3120us P99= 49720us | srv= 100%/100% cli= 114%/1200%
+[116/240] Plaintext asymmetric 1c 65536->64 grpc-go            r3:     28,576 req/s (  1,788 MiB/s) | P50=  6300us P99= 30510us | srv= 100%/100% cli=  84%/1200%
+[117/240] Plaintext asymmetric 1c 65536->64 grpc-lite          r3:     47,895 req/s (  2,996 MiB/s) | P50=  3920us P99=  4270us | srv= 100%/100% cli= 128%/1200%
+[118/240] Plaintext asymmetric 1c 65536->64 tonic              r3:     57,521 req/s (  3,599 MiB/s) | P50=  4310us P99=  4480us | srv= 100%/100% cli= 139%/1200%
+[119/240] Plaintext asymmetric 1c 65536->64 grpc-cpp-callback  r3:     41,064 req/s (  2,569 MiB/s) | P50=  3230us P99= 44630us | srv= 100%/100% cli= 127%/1200%
+[120/240] Plaintext asymmetric 1c 65536->64 grpc-cpp-sync      r3:     37,292 req/s (  2,333 MiB/s) | P50=  4930us P99= 10330us | srv= 100%/100% cli= 105%/1200%
+[121/240] TLS       multicore  1c 1024->1024 grpc-cpp-sync      r1:     55,849 req/s (    109 MiB/s) | P50= 11410us P99= 68370us | srv= 100%/100% cli=  56%/1200%
+[122/240] TLS       multicore  1c 1024->1024 grpc-go            r1:     75,493 req/s (    147 MiB/s) | P50=  9900us P99= 23540us | srv= 100%/100% cli=  77%/1200%
+[123/240] TLS       multicore  1c 1024->1024 grpc-lite          r1:    418,490 req/s (    817 MiB/s) | P50=  1820us P99=  1960us | srv= 100%/100% cli= 101%/1200%
+[124/240] TLS       multicore  1c 1024->1024 tonic              r1:     83,652 req/s (    163 MiB/s) | P50=  3760us P99= 95170us | srv= 100%/100% cli=  68%/1200%
+[125/240] TLS       multicore  1c 1024->1024 grpc-cpp-callback  r1:     76,767 req/s (    150 MiB/s) | P50=  3490us P99= 78570us | srv= 100%/100% cli=  76%/1200%
+[126/240] TLS       multicore  1c 1024->1024 grpc-go            r2:     75,648 req/s (    148 MiB/s) | P50=  9670us P99= 24400us | srv= 100%/100% cli=  72%/1200%
+[127/240] TLS       multicore  1c 1024->1024 grpc-lite          r2:    415,277 req/s (    811 MiB/s) | P50=  1840us P99=  1960us | srv= 100%/100% cli=  98%/1200%
+[128/240] TLS       multicore  1c 1024->1024 tonic              r2:     82,910 req/s (    162 MiB/s) | P50=  3810us P99= 90080us | srv= 100%/100% cli=  61%/1200%
+[129/240] TLS       multicore  1c 1024->1024 grpc-cpp-callback  r2:     76,934 req/s (    150 MiB/s) | P50=  3370us P99= 72000us | srv= 100%/100% cli=  74%/1200%
+[130/240] TLS       multicore  1c 1024->1024 grpc-cpp-sync      r2:     55,731 req/s (    109 MiB/s) | P50= 11670us P99= 64510us | srv= 100%/100% cli=  57%/1200%
+[131/240] TLS       multicore  1c 1024->1024 grpc-lite          r3:    417,440 req/s (    815 MiB/s) | P50=  1830us P99=  1950us | srv= 100%/100% cli=  99%/1200%
+[132/240] TLS       multicore  1c 1024->1024 tonic              r3:     84,286 req/s (    165 MiB/s) | P50=  3960us P99= 89220us | srv= 100%/100% cli=  63%/1200%
+[133/240] TLS       multicore  1c 1024->1024 grpc-cpp-callback  r3:     77,895 req/s (    152 MiB/s) | P50=  3580us P99= 74630us | srv= 100%/100% cli=  77%/1200%
+[134/240] TLS       multicore  1c 1024->1024 grpc-cpp-sync      r3:     56,057 req/s (    109 MiB/s) | P50= 11450us P99= 67090us | srv= 100%/100% cli=  58%/1200%
+[135/240] TLS       multicore  1c 1024->1024 grpc-go            r3:     75,971 req/s (    148 MiB/s) | P50=  9800us P99= 24190us | srv= 100%/100% cli=  77%/1200%
+[136/240] TLS       multicore  2c 1024->1024 grpc-go            r1:    138,679 req/s (    271 MiB/s) | P50=  5180us P99= 13710us | srv= 192%/200% cli= 121%/1200%
+[137/240] TLS       multicore  2c 1024->1024 grpc-lite          r1:    819,498 req/s (  1,601 MiB/s) | P50=   935us P99=  1630us | srv= 200%/200% cli= 176%/1200%
+[138/240] TLS       multicore  2c 1024->1024 tonic              r1:    162,819 req/s (    318 MiB/s) | P50=  4110us P99= 16980us | srv= 198%/200% cli= 114%/1200%
+[139/240] TLS       multicore  2c 1024->1024 grpc-cpp-callback  r1:    149,918 req/s (    293 MiB/s) | P50=  2650us P99= 44000us | srv= 200%/200% cli= 132%/1200%
+[140/240] TLS       multicore  2c 1024->1024 grpc-cpp-sync      r1:    102,953 req/s (    201 MiB/s) | P50=  6640us P99= 25470us | srv= 198%/200% cli=  63%/1200%
+[141/240] TLS       multicore  2c 1024->1024 grpc-lite          r2:    807,864 req/s (  1,578 MiB/s) | P50=  1230us P99=  1350us | srv= 200%/200% cli= 168%/1200%
+[142/240] TLS       multicore  2c 1024->1024 tonic              r2:    162,526 req/s (    317 MiB/s) | P50=  4140us P99= 17010us | srv= 198%/200% cli= 116%/1200%
+[143/240] TLS       multicore  2c 1024->1024 grpc-cpp-callback  r2:    150,063 req/s (    293 MiB/s) | P50=  2830us P99= 41410us | srv= 200%/200% cli= 134%/1200%
+[144/240] TLS       multicore  2c 1024->1024 grpc-cpp-sync      r2:    101,128 req/s (    198 MiB/s) | P50=  6790us P99= 24320us | srv= 197%/200% cli=  60%/1200%
+[145/240] TLS       multicore  2c 1024->1024 grpc-go            r2:    140,809 req/s (    275 MiB/s) | P50=  5080us P99= 13740us | srv= 192%/200% cli= 120%/1200%
+[146/240] TLS       multicore  2c 1024->1024 tonic              r3:    162,181 req/s (    317 MiB/s) | P50=  4190us P99= 16480us | srv= 198%/200% cli= 120%/1200%
+[147/240] TLS       multicore  2c 1024->1024 grpc-cpp-callback  r3:    150,434 req/s (    294 MiB/s) | P50=  2960us P99= 41900us | srv= 200%/200% cli= 132%/1200%
+[148/240] TLS       multicore  2c 1024->1024 grpc-cpp-sync      r3:    102,144 req/s (    200 MiB/s) | P50=  6670us P99= 25830us | srv= 198%/200% cli=  60%/1200%
+[149/240] TLS       multicore  2c 1024->1024 grpc-go            r3:    140,092 req/s (    274 MiB/s) | P50=  5100us P99= 13640us | srv= 192%/200% cli= 121%/1200%
+[150/240] TLS       multicore  2c 1024->1024 grpc-lite          r3:    821,024 req/s (  1,604 MiB/s) | P50=  1040us P99=  1270us | srv= 200%/200% cli= 172%/1200%
+[151/240] TLS       multicore  4c 1024->1024 grpc-lite          r1:  1,505,147 req/s (  2,940 MiB/s) | P50=   954us P99=  1790us | srv= 400%/400% cli= 335%/1200%
+[152/240] TLS       multicore  4c 1024->1024 tonic              r1:    317,081 req/s (    619 MiB/s) | P50=  4180us P99= 14990us | srv= 394%/400% cli= 216%/1200%
+[153/240] TLS       multicore  4c 1024->1024 grpc-cpp-callback  r1:    298,174 req/s (    582 MiB/s) | P50=  1400us P99= 46590us | srv= 398%/400% cli= 242%/1200%
+[154/240] TLS       multicore  4c 1024->1024 grpc-cpp-sync      r1:    187,157 req/s (    366 MiB/s) | P50=  7660us P99= 22420us | srv= 397%/400% cli=  76%/1200%
+[155/240] TLS       multicore  4c 1024->1024 grpc-go            r1:    264,529 req/s (    517 MiB/s) | P50=  5240us P99= 20650us | srv= 384%/400% cli= 207%/1200%
+[156/240] TLS       multicore  4c 1024->1024 tonic              r2:    315,266 req/s (    616 MiB/s) | P50=  4220us P99= 15380us | srv= 394%/400% cli= 221%/1200%
+[157/240] TLS       multicore  4c 1024->1024 grpc-cpp-callback  r2:    299,027 req/s (    584 MiB/s) | P50=  1700us P99= 45860us | srv= 398%/400% cli= 246%/1200%
+[158/240] TLS       multicore  4c 1024->1024 grpc-cpp-sync      r2:    187,910 req/s (    367 MiB/s) | P50=  7530us P99= 23620us | srv= 396%/400% cli=  86%/1200%
+[159/240] TLS       multicore  4c 1024->1024 grpc-go            r2:    260,352 req/s (    509 MiB/s) | P50=  5390us P99= 20780us | srv= 381%/400% cli= 203%/1200%
+[160/240] TLS       multicore  4c 1024->1024 grpc-lite          r2:  1,451,663 req/s (  2,835 MiB/s) | P50=   993us P99=  1910us | srv= 400%/400% cli= 336%/1200%
+[161/240] TLS       multicore  4c 1024->1024 grpc-cpp-callback  r3:    301,045 req/s (    588 MiB/s) | P50=  1730us P99= 46630us | srv= 398%/400% cli= 245%/1200%
+[162/240] TLS       multicore  4c 1024->1024 grpc-cpp-sync      r3:    187,613 req/s (    366 MiB/s) | P50=  7540us P99= 24660us | srv= 398%/400% cli=  78%/1200%
+[163/240] TLS       multicore  4c 1024->1024 grpc-go            r3:    261,586 req/s (    511 MiB/s) | P50=  5530us P99= 18010us | srv= 385%/400% cli= 219%/1200%
+[164/240] TLS       multicore  4c 1024->1024 grpc-lite          r3:  1,452,191 req/s (  2,836 MiB/s) | P50=  1010us P99=  1830us | srv= 399%/400% cli= 333%/1200%
+[165/240] TLS       multicore  4c 1024->1024 tonic              r3:    316,648 req/s (    618 MiB/s) | P50=  4220us P99= 14920us | srv= 394%/400% cli= 223%/1200%
+[166/240] TLS       multicore  8c 1024->1024 tonic              r1:    553,482 req/s (  1,081 MiB/s) | P50=  2520us P99=  7750us | srv= 781%/800% cli= 380%/800%
+[167/240] TLS       multicore  8c 1024->1024 grpc-cpp-callback  r1:    530,643 req/s (  1,036 MiB/s) | P50=   432us P99= 33770us | srv= 793%/800% cli= 385%/800%
+[168/240] TLS       multicore  8c 1024->1024 grpc-cpp-sync      r1:    332,884 req/s (    650 MiB/s) | P50=  4110us P99= 16960us | srv= 788%/800% cli= 140%/800%
+[169/240] TLS       multicore  8c 1024->1024 grpc-go            r1:    451,561 req/s (    882 MiB/s) | P50=  3090us P99= 13570us | srv= 767%/800% cli= 317%/800%
+[170/240] TLS       multicore  8c 1024->1024 grpc-lite          r1:  2,164,667 req/s (  4,228 MiB/s) | P50=   581us P99=  1450us | srv= 784%/800% cli= 612%/800%
+[171/240] TLS       multicore  8c 1024->1024 grpc-cpp-callback  r2:    524,017 req/s (  1,023 MiB/s) | P50=   405us P99= 36410us | srv= 793%/800% cli= 378%/800%
+[172/240] TLS       multicore  8c 1024->1024 grpc-cpp-sync      r2:    333,566 req/s (    651 MiB/s) | P50=  4100us P99= 16920us | srv= 788%/800% cli= 130%/800%
+[173/240] TLS       multicore  8c 1024->1024 grpc-go            r2:    449,195 req/s (    877 MiB/s) | P50=  3000us P99= 14560us | srv= 764%/800% cli= 322%/800%
+[174/240] TLS       multicore  8c 1024->1024 grpc-lite          r2:  2,159,785 req/s (  4,218 MiB/s) | P50=   615us P99=  1400us | srv= 786%/800% cli= 613%/800%
+[175/240] TLS       multicore  8c 1024->1024 tonic              r2:    546,659 req/s (  1,068 MiB/s) | P50=  2540us P99=  7920us | srv= 781%/800% cli= 384%/800%
+[176/240] TLS       multicore  8c 1024->1024 grpc-cpp-sync      r3:    333,937 req/s (    652 MiB/s) | P50=  4110us P99= 16230us | srv= 789%/800% cli= 134%/800%
+[177/240] TLS       multicore  8c 1024->1024 grpc-go            r3:    451,072 req/s (    881 MiB/s) | P50=  2970us P99= 15280us | srv= 764%/800% cli= 322%/800%
+[178/240] TLS       multicore  8c 1024->1024 grpc-lite          r3:  2,180,406 req/s (  4,259 MiB/s) | P50=   617us P99=  1250us | srv= 782%/800% cli= 616%/800%
+[179/240] TLS       multicore  8c 1024->1024 tonic              r3:    548,111 req/s (  1,071 MiB/s) | P50=  2540us P99=  7800us | srv= 780%/800% cli= 388%/800%
+[180/240] TLS       multicore  8c 1024->1024 grpc-cpp-callback  r3:    523,024 req/s (  1,022 MiB/s) | P50=   406us P99= 34940us | srv= 794%/800% cli= 384%/800%
+[181/240] TLS       payload    1c 65536->65536 grpc-cpp-callback  r1:     18,739 req/s (  2,342 MiB/s) | P50=  3650us P99=102650us | srv= 100%/100% cli=  94%/1200%
+[182/240] TLS       payload    1c 65536->65536 grpc-cpp-sync      r1:     15,147 req/s (  1,893 MiB/s) | P50=  9510us P99= 67090us | srv= 100%/100% cli=  74%/1200%
+[183/240] TLS       payload    1c 65536->65536 grpc-go            r1:      8,044 req/s (  1,006 MiB/s) | P50= 11230us P99=102120us | srv= 100%/100% cli=  55%/1200%
+[184/240] TLS       payload    1c 65536->65536 grpc-lite          r1:     14,653 req/s (  1,832 MiB/s) | P50= 13050us P99= 13940us | srv= 100%/100% cli= 103%/1200%
+[185/240] TLS       payload    1c 65536->65536 tonic              r1:     16,289 req/s (  2,036 MiB/s) | P50= 15000us P99= 16150us | srv= 100%/100% cli=  95%/1200%
+[186/240] TLS       payload    1c 65536->65536 grpc-cpp-sync      r2:     15,048 req/s (  1,881 MiB/s) | P50=  9380us P99= 72730us | srv= 100%/100% cli=  75%/1200%
+[187/240] TLS       payload    1c 65536->65536 grpc-go            r2:      7,855 req/s (    982 MiB/s) | P50= 20630us P99=146380us | srv= 100%/100% cli=  56%/1200%
+[188/240] TLS       payload    1c 65536->65536 grpc-lite          r2:     14,485 req/s (  1,811 MiB/s) | P50= 13500us P99= 14110us | srv= 100%/100% cli= 103%/1200%
+[189/240] TLS       payload    1c 65536->65536 tonic              r2:     16,382 req/s (  2,048 MiB/s) | P50= 15030us P99= 15960us | srv= 100%/100% cli=  95%/1200%
+[190/240] TLS       payload    1c 65536->65536 grpc-cpp-callback  r2:     18,449 req/s (  2,306 MiB/s) | P50=  3620us P99= 93950us | srv= 100%/100% cli=  94%/1200%
+[191/240] TLS       payload    1c 65536->65536 grpc-go            r3:      7,730 req/s (    966 MiB/s) | P50= 22400us P99= 37580us | srv= 100%/100% cli=  52%/1200%
+[192/240] TLS       payload    1c 65536->65536 grpc-lite          r3:     14,609 req/s (  1,826 MiB/s) | P50= 13000us P99= 13850us | srv= 100%/100% cli= 101%/1200%
+[193/240] TLS       payload    1c 65536->65536 tonic              r3:     20,100 req/s (  2,512 MiB/s) | P50= 12350us P99= 13060us | srv= 100%/100% cli=  98%/1200%
+[194/240] TLS       payload    1c 65536->65536 grpc-cpp-callback  r3:     18,601 req/s (  2,325 MiB/s) | P50=  3650us P99= 97040us | srv= 100%/100% cli=  96%/1200%
+[195/240] TLS       payload    1c 65536->65536 grpc-cpp-sync      r3:     14,854 req/s (  1,857 MiB/s) | P50=  9920us P99= 64440us | srv= 100%/100% cli=  78%/1200%
+[196/240] TLS       payload    1c 1048576->1048576 grpc-cpp-sync      r1:      1,053 req/s (  2,106 MiB/s) | P50= 28320us P99=206150us | srv= 100%/100% cli=  73%/1200%
+[197/240] TLS       payload    1c 1048576->1048576 grpc-go            r1:        921 req/s (  1,841 MiB/s) | P50= 18030us P99=307030us | srv= 100%/100% cli=  79%/1200%
+[198/240] TLS       payload    1c 1048576->1048576 grpc-lite          r1:        922 req/s (  1,843 MiB/s) | P50= 51840us P99= 56090us | srv= 100%/100% cli=  79%/1200%
+[199/240] TLS       payload    1c 1048576->1048576 tonic              r1:      1,108 req/s (  2,215 MiB/s) | P50= 39260us P99=142920us | srv= 100%/100% cli=  93%/1200%
+[200/240] TLS       payload    1c 1048576->1048576 grpc-cpp-callback  r1:      1,118 req/s (  2,237 MiB/s) | P50= 15260us P99=204180us | srv= 100%/100% cli=  80%/1200%
+[201/240] TLS       payload    1c 1048576->1048576 grpc-go            r2:        937 req/s (  1,873 MiB/s) | P50= 23130us P99=469580us | srv= 100%/100% cli=  77%/1200%
+[202/240] TLS       payload    1c 1048576->1048576 grpc-lite          r2:        984 req/s (  1,968 MiB/s) | P50= 48580us P99= 50870us | srv= 100%/100% cli=  87%/1200%
+[203/240] TLS       payload    1c 1048576->1048576 tonic              r2:      1,110 req/s (  2,220 MiB/s) | P50= 41470us P99=138810us | srv= 100%/100% cli=  93%/1200%
+[204/240] TLS       payload    1c 1048576->1048576 grpc-cpp-callback  r2:      1,127 req/s (  2,254 MiB/s) | P50= 16450us P99=199590us | srv= 100%/100% cli=  76%/1200%
+[205/240] TLS       payload    1c 1048576->1048576 grpc-cpp-sync      r2:      1,073 req/s (  2,146 MiB/s) | P50= 26140us P99=208140us | srv= 100%/100% cli=  79%/1200%
+[206/240] TLS       payload    1c 1048576->1048576 grpc-lite          r3:        959 req/s (  1,918 MiB/s) | P50= 50100us P99= 52140us | srv= 100%/100% cli=  85%/1200%
+[207/240] TLS       payload    1c 1048576->1048576 tonic              r3:      1,118 req/s (  2,236 MiB/s) | P50= 36080us P99=136530us | srv= 100%/100% cli=  96%/1200%
+[208/240] TLS       payload    1c 1048576->1048576 grpc-cpp-callback  r3:      1,094 req/s (  2,188 MiB/s) | P50= 20690us P99=183780us | srv= 100%/100% cli=  76%/1200%
+[209/240] TLS       payload    1c 1048576->1048576 grpc-cpp-sync      r3:      1,085 req/s (  2,170 MiB/s) | P50= 27500us P99=194050us | srv= 100%/100% cli=  76%/1200%
+[210/240] TLS       payload    1c 1048576->1048576 grpc-go            r3:        933 req/s (  1,866 MiB/s) | P50= 19870us P99=345810us | srv= 100%/100% cli=  76%/1200%
+[211/240] TLS       asymmetric 1c 64->65536 grpc-go            r1:     11,468 req/s (    717 MiB/s) | P50= 17240us P99= 25260us | srv= 100%/100% cli=  41%/1200%
+[212/240] TLS       asymmetric 1c 64->65536 grpc-lite          r1:     28,358 req/s (  1,774 MiB/s) | P50=  6750us P99=  7100us | srv= 100%/100% cli=  81%/1200%
+[213/240] TLS       asymmetric 1c 64->65536 tonic              r1:     21,323 req/s (  1,334 MiB/s) | P50=  9970us P99= 12330us | srv= 100%/100% cli=  64%/1200%
+[214/240] TLS       asymmetric 1c 64->65536 grpc-cpp-callback  r1:     30,186 req/s (  1,888 MiB/s) | P50=  3620us P99= 60360us | srv= 100%/100% cli=  69%/1200%
+[215/240] TLS       asymmetric 1c 64->65536 grpc-cpp-sync      r1:     27,086 req/s (  1,695 MiB/s) | P50=  5510us P99= 45190us | srv= 100%/100% cli=  64%/1200%
+[216/240] TLS       asymmetric 1c 64->65536 grpc-lite          r2:     28,196 req/s (  1,764 MiB/s) | P50=  6800us P99=  6930us | srv= 100%/100% cli=  75%/1200%
+[217/240] TLS       asymmetric 1c 64->65536 tonic              r2:     22,254 req/s (  1,392 MiB/s) | P50=  9570us P99= 11850us | srv= 100%/100% cli=  74%/1200%
+[218/240] TLS       asymmetric 1c 64->65536 grpc-cpp-callback  r2:     37,479 req/s (  2,345 MiB/s) | P50=  3290us P99= 48490us | srv= 100%/100% cli=  66%/1200%
+[219/240] TLS       asymmetric 1c 64->65536 grpc-cpp-sync      r2:     27,371 req/s (  1,712 MiB/s) | P50=  5470us P99= 43540us | srv= 100%/100% cli=  66%/1200%
+[220/240] TLS       asymmetric 1c 64->65536 grpc-go            r2:     11,489 req/s (    719 MiB/s) | P50= 17030us P99= 25440us | srv= 100%/100% cli=  39%/1200%
+[221/240] TLS       asymmetric 1c 64->65536 tonic              r3:     22,110 req/s (  1,383 MiB/s) | P50=  9670us P99= 11960us | srv= 100%/100% cli=  74%/1200%
+[222/240] TLS       asymmetric 1c 64->65536 grpc-cpp-callback  r3:     29,571 req/s (  1,850 MiB/s) | P50=  3660us P99= 62250us | srv= 100%/100% cli=  77%/1200%
+[223/240] TLS       asymmetric 1c 64->65536 grpc-cpp-sync      r3:     27,103 req/s (  1,696 MiB/s) | P50=  5670us P99= 38020us | srv= 100%/100% cli=  61%/1200%
+[224/240] TLS       asymmetric 1c 64->65536 grpc-go            r3:     11,454 req/s (    717 MiB/s) | P50= 17030us P99= 25430us | srv= 100%/100% cli=  40%/1200%
+[225/240] TLS       asymmetric 1c 64->65536 grpc-lite          r3:     28,282 req/s (  1,769 MiB/s) | P50=  6760us P99=  7110us | srv= 100%/100% cli=  79%/1200%
+[226/240] TLS       asymmetric 1c 65536->64 grpc-lite          r1:     26,837 req/s (  1,679 MiB/s) | P50=  7110us P99=  9420us | srv= 100%/100% cli= 137%/1200%
+[227/240] TLS       asymmetric 1c 65536->64 tonic              r1:     38,815 req/s (  2,428 MiB/s) | P50=  6340us P99=  6640us | srv= 100%/100% cli= 136%/1200%
+[228/240] TLS       asymmetric 1c 65536->64 grpc-cpp-callback  r1:     30,805 req/s (  1,927 MiB/s) | P50=  3200us P99= 66360us | srv= 100%/100% cli= 104%/1200%
+[229/240] TLS       asymmetric 1c 65536->64 grpc-cpp-sync      r1:     24,134 req/s (  1,510 MiB/s) | P50=  7040us P99= 32310us | srv= 100%/100% cli=  85%/1200%
+[230/240] TLS       asymmetric 1c 65536->64 grpc-go            r1:     21,798 req/s (  1,364 MiB/s) | P50=  9170us P99= 14100us | srv= 100%/100% cli=  80%/1200%
+[231/240] TLS       asymmetric 1c 65536->64 tonic              r2:     38,861 req/s (  2,431 MiB/s) | P50=  6390us P99=  6610us | srv= 100%/100% cli= 134%/1200%
+[232/240] TLS       asymmetric 1c 65536->64 grpc-cpp-callback  r2:     30,489 req/s (  1,907 MiB/s) | P50=  3260us P99= 71880us | srv= 100%/100% cli= 103%/1200%
+[233/240] TLS       asymmetric 1c 65536->64 grpc-cpp-sync      r2:     23,911 req/s (  1,496 MiB/s) | P50=  7090us P99= 30170us | srv= 100%/100% cli=  87%/1200%
+[234/240] TLS       asymmetric 1c 65536->64 grpc-go            r2:     21,955 req/s (  1,374 MiB/s) | P50=  9080us P99= 14000us | srv= 100%/100% cli=  81%/1200%
+[235/240] TLS       asymmetric 1c 65536->64 grpc-lite          r2:     26,520 req/s (  1,659 MiB/s) | P50=  7210us P99=  7540us | srv= 100%/100% cli= 135%/1200%
+[236/240] TLS       asymmetric 1c 65536->64 grpc-cpp-callback  r3:     30,943 req/s (  1,936 MiB/s) | P50=  3230us P99= 66510us | srv= 100%/100% cli= 107%/1200%
+[237/240] TLS       asymmetric 1c 65536->64 grpc-cpp-sync      r3:     24,789 req/s (  1,551 MiB/s) | P50=  6670us P99= 30720us | srv= 100%/100% cli=  89%/1200%
+[238/240] TLS       asymmetric 1c 65536->64 grpc-go            r3:     21,807 req/s (  1,364 MiB/s) | P50=  8510us P99= 39580us | srv= 100%/100% cli=  82%/1200%
+[239/240] TLS       asymmetric 1c 65536->64 grpc-lite          r3:     26,755 req/s (  1,674 MiB/s) | P50=  7170us P99=  7470us | srv= 100%/100% cli= 138%/1200%
+[240/240] TLS       asymmetric 1c 65536->64 tonic              r3:     38,660 req/s (  2,419 MiB/s) | P50=  6410us P99=  6670us | srv= 100%/100% cli= 131%/1200%
+
+Completed 240 runs, 286,631,598 timed HTTP/2 completions -> /home/fanmi/workspace/rpc-framework-bench/results/2026-11-26-h2load-0f6c850/h2load-measured

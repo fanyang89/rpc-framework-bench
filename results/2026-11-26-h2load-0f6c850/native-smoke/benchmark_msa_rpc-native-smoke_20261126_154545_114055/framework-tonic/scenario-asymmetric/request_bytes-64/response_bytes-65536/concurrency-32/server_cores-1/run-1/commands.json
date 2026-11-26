@@ -1,0 +1,31 @@
+{
+  "server": [
+    "taskset",
+    "-c",
+    "15",
+    "/home/fanmi/workspace/rpc-framework-bench/bin/tonic-server"
+  ],
+  "client": [
+    "taskset",
+    "-c",
+    "0-7",
+    "/usr/bin/h2load",
+    "--no-tls-proto=h2c",
+    "-t",
+    "8",
+    "-c",
+    "32",
+    "-m",
+    "1",
+    "--warm-up-time=200ms",
+    "-D",
+    "1000ms",
+    "-H",
+    "content-type: application/grpc",
+    "-H",
+    "te: trailers",
+    "-d",
+    "/home/fanmi/workspace/rpc-framework-bench/results/2026-11-26-h2load-0f6c850/native-smoke/req-payloads/grpc-req-64-65536.bin",
+    "http://127.0.0.1:26163/grpc.testing.TestService/UnaryCall"
+  ]
+}

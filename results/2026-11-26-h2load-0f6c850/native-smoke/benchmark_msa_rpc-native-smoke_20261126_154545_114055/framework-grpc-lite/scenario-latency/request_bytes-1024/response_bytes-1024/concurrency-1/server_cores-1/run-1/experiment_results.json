@@ -1,0 +1,45 @@
+{
+    "identity": {
+        "experiment_name": "rpc-native-smoke",
+        "benchmark_name": "rpcbenchmark"
+    },
+    "constants": {
+        "hostname": "msa",
+        "architecture": "x86_64",
+        "transport": "plaintext"
+    },
+    "inputs": {
+        "framework": "grpc-lite",
+        "scenario": "latency",
+        "request_bytes": 1024,
+        "response_bytes": 1024,
+        "concurrency": 1,
+        "server_cores": 1
+    },
+    "rep": 1,
+    "outputs": {
+        "ops_per_second": 56149.0,
+        "completed": 56149,
+        "done": 56149,
+        "failed": 0,
+        "errored": 0,
+        "timeout": 0,
+        "status_2xx": 56149,
+        "status_3xx": 0,
+        "status_4xx": 0,
+        "status_5xx": 0,
+        "total_bytes": 59989947,
+        "min_us": 14.0,
+        "max_us": 259.0,
+        "p50_us": 16.0,
+        "p95_us": 19.0,
+        "p99_us": 22.0,
+        "mean_us": 16.0,
+        "errors": 0,
+        "client_cpu_percent": 35.276371376522285,
+        "server_cpu_percent": 38.121834854169755,
+        "completion_scope": "http2",
+        "payload_mib_s": 109.666015625
+    },
+    "pretty": {}
+}

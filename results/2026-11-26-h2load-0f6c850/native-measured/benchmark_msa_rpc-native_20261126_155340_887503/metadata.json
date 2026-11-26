@@ -1,0 +1,19 @@
+{
+    "metadata_version": 1,
+    "benchmark_campaign_name": "rpc-native",
+    "benchmark_name": "rpcbenchmark",
+    "benchmark_duration_seconds": 5,
+    "nb_runs": 3,
+    "date": "2026-11-26 15:53:40.888864+00:00",
+    "date_val": "20261126_155340",
+    "git_branch": "main",
+    "git_sha": "77bfdd9fc370e59fe1189186b4bb8634f7ba7916",
+    "kernel": "Linux msa 7.3.3-300.fc45.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Nov  6 20:37:28 UTC 2026 x86_64 GNU/Linux",
+    "kernel_boot_args": "BOOT_IMAGE=(hd0,gpt2)/vmlinuz-7.3.3-300.fc45.x86_64 root=UUID=7fa1d33a-d874-4fc6-95a9-e6d345c71edf ro rootflags=subvol=root rhgb quiet selinux=0 rd.driver.blacklist=nouveau,nova_core modprobe.blacklist=nouveau,nova_core",
+    "expected_duration_seconds": 1800,
+    "expected_duration_pretty": "0:30:00",
+    "prebuild_duration_seconds": 0,
+    "prebuild_duration_pretty": "0:00:00",
+    "total_duration_seconds": 3541.969844407,
+    "total_duration_pretty": "0:59:01.969844"
+}

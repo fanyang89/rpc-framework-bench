@@ -1,2 +1,0 @@
-I1125 19:38:18.009187 2612598     0 <TMPDIR>/brpc-1.18.0/src/brpc/server.cpp:1247 StartInternal] Server[Service] is serving on port=26113.
-I1125 19:38:18.009526 2612598     0 <TMPDIR>/brpc-1.18.0/src/brpc/server.cpp:1250 StartInternal] Check out http://msa:26113 in web browser.
