@@ -22,14 +22,14 @@ This report evaluates **8 RPC server stacks** (`grpc-lite 0f6c850` with OpenSSL 
 | --- | --- | --- | --- |
 | **Lowest 1 KiB Latency (C=1, 1 core, `-m 1`)** | **Apache Thrift** / **grpc-lite** | **15.6 µs** / **16.0 µs** P50 (`21.3 / 22.0 µs` P99) | Removing blocking C++ gRPC client overhead (`~14 µs`) puts **`grpc-lite` in a virtual tie with raw framed binary Thrift** and ahead of Cap'n Proto (`17.6 µs`) and brpc (`20.9 µs`). |
 | **Peak 8-Core Plaintext (`C=128`, `-m 1`)** | **grpc-lite (Zig)** | **1,069,242 RPC/s** (`8.13×`, **`159 µs`** P99) | Even without HTTP/2 multiplexing (`-m 1`), **`grpc-lite` surpasses 1M RPC/s and beats Apache Thrift (`983.6k`, `226 µs` P99), Cap'n Proto (`771.5k`), and brpc (`637.2k`)**. |
-| **Multiplexed gRPC Multicore (`h2load`, 4c / 8c)** | **grpc-lite (Zig)** | **1.80M / 2.48M** PT · **1.53M / 2.18M** TLS | Scales **3.93× on 4 cores** and reaches **2.48M PT / 2.18M TLS on 8 cores** (**4.1× / 3.9×** Tonic at `604k / 552k`) with **`1.35–2.86 ms` P99** under 1,536 in-flight streams. |
+| **Multiplexed gRPC Multicore (`h2load`, 4c / 8c)** | **grpc-lite (Zig)** | **1.80M / 2.48M** PT · **1.53M / 2.18M** TLS | In the 8-core configuration, throughput is **4.1× / 3.9×** Tonic's (`604k / 552k`), with **`1.35–2.86 ms` P99** at a concurrency limit of 1,536 streams. |
 | **Large Symmetric 64 KiB / 1 MiB (8 Frameworks, `-m 1`)** | **Apache Thrift** | **5,214 MiB/s** (64 KiB) · **4,441 MiB/s** (1 MiB) | Non-HTTP/2 binary protocols (`Thrift`, `brpc`, `Cap'n Proto`) lead bulk plaintext bandwidth; among gRPC stacks, `grpc-lite` leads 64 KiB (`3,004 MiB/s`) while `gRPC-Go` / `C++ callback` lead 1 MiB (`3,314 / 3,209 MiB/s`). |
 | **Large Symmetric 64 KiB / 1 MiB gRPC (`h2load`, PT & TLS)** | **gRPC C++ (callback)** | **3,431 / 2,329 MiB/s** (64 KiB) · **3,595 / 2,262 MiB/s** (1 MiB) | `C++ callback` leads throughput on both 64 KiB and 1 MiB in PT & TLS; `Tonic` takes #2 in TLS (`2,049 / 2,206 MiB/s`), while `grpc-lite` delivers **4×–7× tighter P99** (`9–14 ms` @ 64 KiB, `34–51 ms` @ 1 MiB vs `75–362 ms` for C++/Go). |
 | **Asymmetric 64 B ↔ 64 KiB gRPC (`h2load`, PT & TLS)** | **grpc-lite** (Resp) / **Tonic** (Req) | **47.0k** PT (`64B→64K`) · **57.2k / 38.6k** (`64K→64B`) | `grpc-lite` leads large-response PT (`47.0k`) and ties `C++ callback` in TLS (`28.3k` vs `29.3k`, 9× tighter P99); **`Tonic` dominates large-request ingestion** in both PT (`57.2k`) and TLS (`38.6k`). |
 | **gRPC Server-Streaming (1 core, 16×1 KiB)** | **Tonic (Rust)** | **44.7k / 53.1k** PT · **39.1k / 43.9k** TLS | Leads all 4 client/transport cells ahead of `grpc-lite` (`44.5k / 48.0k` PT, `37.5k / 34.5k` TLS) and `gRPC-Go` (`39.0k / 36.9k` PT, `31.0k / 29.7k` TLS). |
 | **gRPC Client-Streaming & Bidi (1 core, 16×1 KiB)** | **grpc-lite** / **Tonic** / **gRPC-Go** | **68.4k** client-stream · **8.80k** bidi (Tonic cli) | `grpc-lite` leads Go-client client-stream (`68.4k / 47.7k`) and Tonic-client bidi (`8.80k / 6.98k`); `Tonic` leads Tonic-client TLS client-stream (`47.7k`); `gRPC-Go` leads Go-client bidi (`5.83k / 5.40k`). |
 
-> **Why switching gRPC Unary to neutral `h2load` mattered:** In earlier runs using the blocking C++ `grpc-native` client and Go/Tonic load generators, client-side overhead added ~`14 µs` of RTT and saturated all 8 client cores (`778%–784% / 800%`), artificially capping 4–8 core `grpc-lite` at `425k–606k` (and clipping `Tonic` at `428k`). Replacing those clients with neutral, off-the-shelf **`h2load` (`nghttp2/1.69.0`)** removes client-side bottlenecks without using `grpc-lite`'s own client.
+> **Why switching gRPC Unary to neutral `h2load` mattered:** In earlier runs using the blocking C++ `grpc-native` client and Go/Tonic load generators, client-side overhead added ~`14 µs` of RTT and saturated all 8 client cores (`778%–784% / 800%`), artificially capping 4–8 core `grpc-lite` at `425k–606k` (and clipping `Tonic` at `428k`). The same third-party `h2load` client achieved higher throughput without using `grpc-lite`'s own client.
 
 ---
 
@@ -171,6 +171,8 @@ This 240-run matrix ([`harness/campaign_h2load.py`](../harness/campaign_h2load.p
 
 ![Neutral Third-Party High-Load gRPC Scaling via h2load](figures/07-grpc-h2load-multicore-scaling.png)
 
+All five servers share the same client settings within each column. The 1- and 2-core configurations use 48 connections; the 4- and 8-core configurations use 96. At 16 concurrent streams per connection, the load limit doubles from 768 to 1,536 streams. From 4 to 8 server cores, connections stay fixed but `h2load` drops from 12 threads on 12 client cores to 8 threads on 8 cores. The `4c / 1c` and `8c / 1c` columns compare end-to-end configurations rather than isolating the effect of server core count.
+
 #### Plaintext (`h2c`, 1 KiB Unary)
 
 | Server | 1c (12c cli) | 2c (12c cli) | 4c (12c cli) | 8c (8c cli) | 4c / 1c | 8c / 1c | 8c P50 / P99 (ms) | 8c Srv / Cli Core CPU % |
@@ -192,8 +194,8 @@ This 240-run matrix ([`harness/campaign_h2load.py`](../harness/campaign_h2load.p
 | **gRPC C++ (sync)** | 55,283 | 100,037 | 187,831 | 336,633 | 3.40× | 6.09× | 4.11 / 16.26 | 788% / 135% |
 
 **Observations:**
-- **Linear scaling to 4 cores & >2M RPC/s on 8 cores (both Plaintext & TLS):** Freed from Go/Tonic client CPU limits, **`grpc-lite` scales `3.93×` on 4 cores (`1.80M` PT / `1.53M` TLS)** and reaches **`2.48M req/s` PT / `2.18M req/s` TLS on 8 cores** — **4.1× / 3.9× faster than second-place Tonic (`604k / 552k`)**, with **90.8%** 1-core TLS retention and **`1.35–2.86 ms` P99** under 1,536 in-flight streams.
-- **Sustained all-core thermal scaling at 8 cores:** Under sustained 5 s full 16-core load on this mobile Ryzen 9 9955HX, all 5 servers show slightly sub-linear `8c / 4c` gain (`1.38×–1.80×` vs `1.97×` at `2c / 1c`) due to sustained all-core power/frequency limits (in 1 s cold-burst smoke runs, 8-core `grpc-lite` reached `3.30M` PT / `2.84M` TLS and `Tonic` reached `674k / 629k`).
+- **Within the 8-core configuration:** `grpc-lite` reaches **2.48M plaintext / 2.18M TLS RPC/s**, **4.1× / 3.9×** Tonic's throughput (`604k / 552k`).
+- **From 4 to 8 server cores:** Throughput increases for all five servers (`1.38×–1.80×`). The 1 s smoke runs also produced higher 8-core throughput than the 5 s formal runs for `grpc-lite` and Tonic. Neither comparison establishes how much temperature, clock frequency, or the smaller client allocation contributed to the sublinear gain.
 - **Tonic vs. gRPC C++ callback:** `Tonic` edges ahead of `gRPC C++ (callback)` by **+5.7%** PT (`604k` vs `571k`) and **+4.0%** TLS (`552k` vs `531k`) on 8 cores while delivering **4.5× tighter P99** (`7.08–7.78 ms` vs `32.1–35.2 ms`). `gRPC-Go 1.83.2` shows virtually zero TLS overhead (`450k` PT vs `452k` TLS on 8 cores!).
 
 ---
@@ -279,7 +281,7 @@ Because `h2load` is an HTTP/2 Unary tool and cannot perform multi-frame gRPC str
 ## Variability, Limits & Reproducibility
 
 ### Known Variability & Methodological Limits
-- **Run-to-run spread:** Median `(max - min) / median` spread across 3 formal rounds is **1.15%** (Part 1), **1.62%** (Part 2), and **0.75%** (Part 3). Largest spreads occur in `Cap'n Proto` 64 KiB (`16.8%`), `grpc-lite` 64 KiB Plaintext (`11.7%`) and 8-core Plaintext (`10.6%`, one thermally lower round at `2.25M` vs `2.48M`/`2.51M`), and `gRPC C++ sync` 1 MiB TLS (`10.3%`). All charts show exact observed min–max whiskers/bands.
+- **Run-to-run spread:** Median `(max - min) / median` spread across 3 formal rounds is **1.15%** (Part 1), **1.62%** (Part 2), and **0.75%** (Part 3). Largest spreads occur in `Cap'n Proto` 64 KiB (`16.8%`), `grpc-lite` 64 KiB Plaintext (`11.7%`) and 8-core Plaintext (`10.6%`, `2.25M` vs `2.48M`/`2.51M`), and `gRPC C++ sync` 1 MiB TLS (`10.3%`). All charts show exact observed min–max whiskers/bands.
 - **Closed-loop measurement:** Does not correct for coordinated omission. Localhost TCP excludes physical NIC latency, packet loss, switch queueing, and NUMA/cross-host effects.
 - **Cross-matrix boundaries:** Do not mix raw throughput across Part 1 (`-m 1`), Part 2 (multiplexed `h2load`), and Part 3 (Go/Tonic streaming).
 - **Clean dataset repository:** Earlier pre-fix datasets and client-limited baselines have been removed from the working tree; [`results/2026-11-25-h2load-0f6c850/`](../results/2026-11-25-h2load-0f6c850/README.md) is the sole authoritative dataset in the repository.

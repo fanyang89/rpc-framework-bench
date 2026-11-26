@@ -28,7 +28,7 @@ A reproducible, zero-error Linux benchmarking suite evaluating **8 production RP
 
 ## Executive Scorecard
 
-All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 9955HX** (16 physical cores, `performance` governor, localhost TCP) with **0 errors**. All gRPC Unary benchmarks use neutral, off-the-shelf **`h2load` (`nghttp2/1.69.0`)** so fast servers are never capped by client CPU bottlenecks or self-benchmarked with their own clients.
+All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 9955HX** (16 physical cores, `performance` governor, localhost TCP) with **0 errors**. All gRPC Unary benchmarks use the same third-party client, **`h2load` (`nghttp2/1.69.0`)**.
 
 | RPC Stack | Protocol | 1 KiB Latency P50 / P99 (`C=1`, 1c) | 8-Core Plaintext `-m 1` (`C=128`, P99) | 1 MiB Plaintext (`C=32`, 1c) | Multiplexed `h2load` 8c PT / TLS (`1 KiB`) | Server-Stream 1c PT / TLS (`16×1 KiB`, Tonic cli) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -46,7 +46,7 @@ All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 995
 ### Key Takeaways
 
 - **HTTP/2 + gRPC can match raw binary protocols on latency & 8-core throughput:** Freed from blocking C++ gRPC client overhead (`~14 µs`), **`grpc-lite` hits `16.0 µs` P50** (virtually tied with Apache Thrift at `15.6 µs`) and scales **`8.13×` to `1.07M RPC/s`** (`159 µs` P99) on 8 cores even with multiplexing disabled (`-m 1`).
-- **True gRPC multicore ceilings under neutral `h2load`:** All 5 gRPC servers reach **92%–100% server core saturation** across 1 → 2 → 4 → 8 cores. **`grpc-lite` (OpenSSL 4.0.3)** scales **`3.93×` on 4 cores (`1.80M` PT / `1.53M` TLS)** and hits **`2.48M` PT / `2.18M` TLS on 8 cores** (**4.1× / 3.9×** Tonic) with **`1.35–2.86 ms` P99** under 1,536 in-flight streams.
+- **Multiplexed gRPC throughput:** `grpc-lite` delivers **1.80M plaintext / 1.53M TLS RPC/s** in the 4-core configuration. In the 8-core configuration it reaches **2.48M / 2.18M RPC/s**, **4.1× / 3.9×** Tonic's throughput under the same load settings.
 - **No single winner across every workload:**
   - **Bulk plaintext & non-gRPC binary:** **Apache Thrift** leads 64 KiB (`5,214 MiB/s`) and 1 MiB (`4,441 MiB/s`, `15.4 ms` P99).
   - **Multiplexed gRPC large payloads (64 KiB / 1 MiB):** **gRPC C++ (callback)** leads bandwidth (`3,431 / 2,329 MiB/s` @ 64 KiB; `3,595 / 2,262 MiB/s` @ 1 MiB), while **`grpc-lite`** delivers **4×–7× tighter P99** (`9–14 ms` @ 64 KiB; `34–51 ms` @ 1 MiB).
@@ -116,7 +116,7 @@ Benchmark suites are easy to distort unintentionally. This suite enforces six st
 
 - **Localhost loopback only:** Measures end-to-end userspace + kernel loopback stack cost; excludes physical NIC latency, packet loss, switch queueing, and cross-host MTU effects.
 - **Closed-loop load generation:** Measures peak sustainable throughput and queueing latency at fixed concurrency, not open-loop coordinated-omission-corrected tail latency under fixed arrival rates.
-- **Mobile all-core sustained power limits (8 cores):** At 8 server cores (16 total active cores sustained for 5 s), the mobile Ryzen 9 9955HX reduces all-core boost clocks across all 5 servers equally (~12%–22% below 1 s cold-burst smoke runs).
+- **Part 2 multicore comparisons:** The 1- and 2-core configurations use 48 connections; the 4- and 8-core configurations use 96. From 4 to 8 server cores, the client allocation drops from 12 cores to 8. Frameworks share the same settings within each configuration. Cross-configuration gains therefore do not isolate server-core scaling, and the smaller 4-to-8-core gain cannot be attributed to temperature alone.
 - **Protocol scope boundaries:** TLS, HTTP/2 multiplexing, and gRPC streaming apply to the 5 gRPC stacks only (Thrift, Cap'n Proto, and brpc are measured in plaintext unary only). `h2load` does not support gRPC streaming, so Part 3 uses Go and Tonic clients.
 
 ---
