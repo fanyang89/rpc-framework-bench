@@ -28,6 +28,11 @@ import time
 from benchkit.benchmark import Benchmark
 from benchkit.campaign import CampaignIterateVariables
 
+if __package__:
+    from . import unary_validation
+else:
+    import unary_validation
+
 ROOT = Path(__file__).resolve().parent.parent
 FRAMEWORKS = (
     "grpc-lite",
@@ -353,8 +358,8 @@ class RpcBenchmark(Benchmark):
         if use_h2load:
             req_file = self._get_req_file(request_bytes, response_bytes, directory)
             threads = min(8, concurrency)
-            warmup_arg = "200ms" if self.smoke else "1s"
-            dur_arg = "1s" if self.smoke else f"{int(benchmark_duration_seconds)}s"
+            warmup_ms = 200 if self.smoke else 1000
+            duration_ms = 1000 if self.smoke else int(benchmark_duration_seconds) * 1000
             client_command = [
                 "taskset",
                 "-c",
@@ -367,9 +372,9 @@ class RpcBenchmark(Benchmark):
                 str(concurrency),
                 "-m",
                 "1",
-                f"--warm-up-time={warmup_arg}",
+                f"--warm-up-time={warmup_ms}ms",
                 "-D",
-                dur_arg,
+                f"{duration_ms}ms",
                 "-H",
                 "content-type: application/grpc",
                 "-H",
@@ -445,6 +450,7 @@ class RpcBenchmark(Benchmark):
                         raise RuntimeError(
                             f"h2load validation failed for {framework}: {metrics}\n{result.stdout}"
                         )
+                    # This lower bound only rejects gross HTTP/2 traffic deficits.
                     min_wire_len = min(expected_response_wire_lens(response_bytes))
                     min_expected_total = max(0, metrics["completed"] - concurrency) * min_wire_len
                     if metrics["total_bytes"] < min_expected_total:
@@ -471,6 +477,22 @@ class RpcBenchmark(Benchmark):
                 metrics["server_cpu_percent"] = (
                     (cpu_seconds(server.pid) - before) / elapsed * 100
                 )
+                metrics["completion_scope"] = "http2" if use_h2load else "rpc"
+                if use_h2load:
+                    unary_validation.validate_unary(
+                        port=port,
+                        tls=False,
+                        client_cpus="0-7",
+                        threads=threads,
+                        connections=concurrency,
+                        streams=1,
+                        request_bytes=request_bytes,
+                        response_bytes=response_bytes,
+                        warmup_ms=warmup_ms,
+                        duration_ms=duration_ms,
+                        env=env,
+                        output=directory / "validation.json",
+                    )
                 metrics["payload_mib_s"] = (
                     metrics["ops_per_second"]
                     * (request_bytes + response_bytes)
@@ -542,6 +564,8 @@ def main():
             commands(framework, 1, 26051, args.grpc_client, h2load_bin)[1],
         )
     }
+    if args.grpc_client == "h2load":
+        binaries.add(unary_validation.CLIENT)
     env_meta = {
         "grpc_client": args.grpc_client,
         "binaries": {

@@ -1,6 +1,6 @@
 # RPC Framework Performance Report
 
-> **Campaign:** [`2026-11-25-h2load-0f6c850`](../results/2026-11-25-h2load-0f6c850/README.md) &nbsp;|&nbsp; **Formal Runs:** 780 (+ 260 smoke) &nbsp;|&nbsp; **Completed RPCs:** 524,313,126 &nbsp;|&nbsp; **Errors:** 0
+> **Campaign:** [`2026-11-25-h2load-0f6c850`](../results/2026-11-25-h2load-0f6c850/README.md) &nbsp;|&nbsp; **Formal Runs:** 780 (+ 260 smoke) &nbsp;|&nbsp; **Client-reported completions:** 524,313,126
 >
 > **Host:** AMD Ryzen 9 9955HX (16 physical cores / 32 threads, `performance` governor, Linux x86_64, localhost TCP)  
 > **Primary gRPC Load Generator:** Off-the-shelf **`h2load` (`nghttp2/1.69.0`)** for all Unary scenarios (zero custom client bias, 92%–100% server saturation); Go (`1.83.2`) & Tonic (`0.14.6`) clients for Streaming; native C++ clients for Thrift, Cap'n Proto, and brpc.  
@@ -12,11 +12,13 @@
 
 This report evaluates **8 RPC server stacks** (`grpc-lite 0f6c850` with OpenSSL 4.0.3, `Tonic 0.14.6`, `gRPC C++ 1.84.3` callback & sync, `gRPC-Go 1.83.2`, `Apache Thrift 0.25.0`, `Cap'n Proto 1.5.0`, and `brpc 1.18.0`) using neutral third-party **`h2load` (`nghttp2/1.69.0`)** across all gRPC Unary matrices so fast servers are never capped by Go, Tonic, or blocking C++ client CPU ceilings:
 
-1. **Part 1 — Cross-Protocol Plaintext Matrix (360 formal runs, 216.8M RPCs):** 8 frameworks compared under identical **1-connection-per-worker (`-m 1`)** closed-loop topology (`Thrift`, `Cap'n Proto`, `brpc` on native C++ clients; all 5 gRPC servers on `h2load -m 1`) across latency (`0 B / 64 B / 1 KiB`), concurrency (`C = 1 → 128`), multicore (`1 / 4 / 8` cores), large payloads (`1 KiB / 64 KiB / 1 MiB`), and asymmetric payloads (`64 B ↔ 64 KiB`).
-2. **Part 2 — Multiplexed gRPC Plaintext vs. TLS Matrix via `h2load` (240 formal runs, 286.7M RPCs):** All 5 gRPC servers driven to **92%–100% server core saturation** across `1 / 2 / 4 / 8` server cores (`12` client cores for `1–4c`, `8` client cores for `8c`, `-m 16`), large symmetric payloads (`64 KiB`, `1 MiB`), and asymmetric payloads (`64 B ↔ 64 KiB`) in both Plaintext (`h2c`) and TLS (`h2`).
+1. **Part 1 — Cross-Protocol Plaintext Matrix (360 formal runs, 216.8M client-reported completions):** 8 frameworks compared under identical **1-connection-per-worker (`-m 1`)** closed-loop topology (`Thrift`, `Cap'n Proto`, `brpc` on native C++ clients; all 5 gRPC servers on `h2load -m 1`) across latency (`0 B / 64 B / 1 KiB`), concurrency (`C = 1 → 128`), multicore (`1 / 4 / 8` cores), large payloads (`1 KiB / 64 KiB / 1 MiB`), and asymmetric payloads (`64 B ↔ 64 KiB`).
+2. **Part 2 — Multiplexed gRPC Plaintext vs. TLS Matrix via `h2load` (240 formal runs, 286.7M HTTP/2 completions):** All 5 gRPC servers driven to **92%–100% server core saturation** across `1 / 2 / 4 / 8` server cores (`12` client cores for `1–4c`, `8` client cores for `8c`, `-m 16`), large symmetric payloads (`64 KiB`, `1 MiB`), and asymmetric payloads (`64 B ↔ 64 KiB`) in both Plaintext (`h2c`) and TLS (`h2`).
 3. **Part 3 — gRPC Streaming Matrix (180 formal runs, 20.9M RPCs):** All 5 gRPC servers tested across `client-stream`, `server-stream`, and `bidi` ping-pong (`16 × 1 KiB`/RPC, Plaintext & TLS) using Go (`1.83.2`) and Tonic (`0.14.6`) dual-process load generators (since `h2load` only supports HTTP/2 unary).
 
 ### Headline Findings
+
+**Throughput units in all tables and figures:** For the five gRPC unary stacks, RPC/s is the `h2load` HTTP/2 completion rate. Payload MiB/s is calculated from that rate and the configured payload sizes. Native and streaming clients count checked RPCs.
 
 | Dimension | Winner in This Setup | Headline Metric (Median of 3 × 5 s Rounds) | Key Takeaway |
 | --- | --- | --- | --- |
@@ -42,7 +44,7 @@ This report evaluates **8 RPC server stacks** (`grpc-lite 0f6c850` with OpenSSL 
   - **Part 1 (Native + `h2load -m 1`):** Clients pinned to physical cores `0–7`; servers pinned to `15` (1c), `12–15` (4c), or `8–15` (8c).
   - **Part 2 (Multiplexed `h2load`):** `1 / 2 / 4` server cores (`15`, `14–15`, `12–15`) paired with **12 client cores (`0–11`)**; `8` server cores (`8–15`) paired with **8 client cores (`0–7`)**.
   - **Part 3 (Streaming):** Two load-generator processes on `0–3` and `4–7`; server pinned to `15`.
-- **Strict zero-error & wire-level validation:** Before every `h2load` run, a pre-flight `curl` HTTP/2 call verifies `HTTP/2 200`, trailer `grpc-status: 0`, and exact Protobuf response byte length (with CA verification on `localhost` for TLS). Every `h2load` run requires `0 failed / 0 errored / 0 timeout`, zero non-`2xx` status codes, and full aggregate byte counts. All native C++ and Go/Tonic streaming clients validate exact response lengths, streaming message counts, aggregate bytes, and terminal `OK` status on every RPC.
+- **Validation in this dataset:** One preflight request per `h2load` run checked HTTP/2 200, `grpc-status: 0` and response length. Timed runs recorded zero HTTP/2 failures, errors and timeouts. Their `total_bytes` lower bound included headers and framing; `data_bytes` included warmup. Neither counter establishes individual response lengths or final gRPC status. This leaves unary RPC success unknown; it is not evidence of bad responses. Native C++ and Go/Tonic streaming clients checked their responses during timing.
 - **Measurement protocol:** Every formal configuration runs **3 repetitions × 5 seconds** after warmup (`1 s` Part 1, `2 s` Parts 2 & 3). All tables report **round medians**; every Benchkit chart displays the **full observed min–max range**. Median three-round spread is **1.15%** (Part 1), **1.62%** (Part 2), and **0.75%** (Part 3).
 
 ### Tested Software Versions
@@ -63,6 +65,8 @@ This report evaluates **8 RPC server stacks** (`grpc-lite 0f6c850` with OpenSSL 
 ## Part 1 — Cross-Protocol Plaintext Comparison (8 Frameworks, `-m 1`)
 
 All 8 frameworks run under an identical **1-connection-per-worker closed-loop topology** ([`harness/campaign_native.py`](../harness/campaign_native.py), managed by Benchkit): `Apache Thrift`, `Cap'n Proto`, and `brpc` use their native C++ clients (`1` thread / `1` socket per worker), while all 5 gRPC servers use neutral **`h2load` (`nghttp2/1.69.0`) with strict `-m 1`** (`1` in-flight RPC per TCP connection, `-t min(8, C) -c C -m 1`).
+
+In the tables below, RPC/s means HTTP/2 completions/s for `h2load` rows and checked RPCs/s for native rows.
 
 ### 1.1 Single-Request Latency (`C = 1`, 1 Server Core)
 
@@ -165,7 +169,7 @@ All 8 frameworks run under an identical **1-connection-per-worker closed-loop to
 
 ## Part 2 — Multiplexed gRPC Plaintext vs. TLS Matrix via `h2load`
 
-This 240-run matrix ([`harness/campaign_h2load.py`](../harness/campaign_h2load.py)) tests all **5 gRPC server configurations** under realistic **HTTP/2 multiplexing** using off-the-shelf **`h2load` (`nghttp2/1.69.0`)** in both Plaintext (`h2c`) and TLS (`h2`, OpenSSL). Across all 240 runs (**286.7M RPCs, 0 errors**), every server reached **92%–100% server core utilization** while `h2load` preserved client CPU headroom.
+This 240-run matrix ([`harness/campaign_h2load.py`](../harness/campaign_h2load.py)) tests all **5 gRPC server configurations** under **HTTP/2 multiplexing** using **`h2load` (`nghttp2/1.69.0`)** in both Plaintext (`h2c`) and TLS (`h2`, OpenSSL). Across **286.7M HTTP/2 completions**, every server reached **92%–100% server core utilization** while `h2load` preserved client CPU headroom. All throughput columns below give HTTP/2 completions per second.
 
 ### 2.1 Multicore 1 KiB Unary Scaling: Plaintext & TLS (`1 → 2 → 4 → 8` Server Cores)
 

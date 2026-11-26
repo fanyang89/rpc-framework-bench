@@ -1,12 +1,11 @@
 # Cross-Framework RPC Benchmark
 
-A reproducible, zero-error Linux benchmarking suite evaluating **8 production RPC server stacks** across wire protocols, latency, concurrency, multicore scaling, large & asymmetric payloads, certificate-verified TLS, and gRPC streaming.
+A reproducible Linux benchmarking suite evaluating **8 production RPC server stacks** across wire protocols, latency, concurrency, multicore scaling, large & asymmetric payloads, certificate-verified TLS, and gRPC streaming.
 
 <p align="center">
   <strong>8 RPC Stacks</strong> &nbsp;·&nbsp;
   <strong>780 Formal Runs</strong> (+260 Smoke) &nbsp;·&nbsp;
-  <strong>524.3M Verified RPCs</strong> &nbsp;·&nbsp;
-  <strong>0 Errors</strong> &nbsp;·&nbsp;
+  <strong>524.3M Client-Reported Completions</strong> &nbsp;·&nbsp;
   <strong>10 Benchkit Charts (PNG + PDF)</strong>
 </p>
 
@@ -28,7 +27,7 @@ A reproducible, zero-error Linux benchmarking suite evaluating **8 production RP
 
 ## Executive Scorecard
 
-All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 9955HX** (16 physical cores, `performance` governor, localhost TCP) with **0 errors**. All gRPC Unary benchmarks use the same third-party client, **`h2load` (`nghttp2/1.69.0`)**.
+All values below are **medians of 3 × 5 s formal runs** on an **AMD Ryzen 9 9955HX** (16 physical cores, `performance` governor, localhost TCP). For gRPC unary rows, **RPC/s means HTTP/2 completions per second** reported by `h2load` (`nghttp2/1.69.0`). MiB/s uses that rate times the configured request and response payload sizes. The archive has no per-RPC trailer or message-length checks for those timed requests. Native and streaming clients count application-checked RPCs.
 
 | RPC Stack | Protocol | 1 KiB Latency P50 / P99 (`C=1`, 1c) | 8-Core Plaintext `-m 1` (`C=128`, P99) | 1 MiB Plaintext (`C=32`, 1c) | Multiplexed `h2load` 8c PT / TLS (`1 KiB`) | Server-Stream 1c PT / TLS (`16×1 KiB`, Tonic cli) |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
@@ -106,7 +105,7 @@ Benchmark suites are easy to distort unintentionally. This suite enforces six st
 1. **Neutral Third-Party Load Generator (`h2load`):** No gRPC server is benchmarked with its own client. Using off-the-shelf `h2load` (`nghttp2/1.69.0`) eliminates the ~`14 µs` client RTT penalty of blocking C++ gRPC and the 8-core client CPU ceiling (`780%/800%`) of Go/Tonic load generators, saturating all 5 gRPC servers to **92%–100% server core CPU**.
 2. **Strict Topology Parity Across Protocols:** In the 8-framework comparison (Part 1), `h2load` is locked to **`-m 1`** (1 in-flight RPC per TCP connection) so connection count and concurrency (`C = 1, 8, 32, 128`) match the native C++ Thrift, Cap'n Proto, and brpc clients apples-to-apples. HTTP/2 multiplexing (`-m 16`) is evaluated separately in Part 2.
 3. **Physical Core Isolation & Asymmetric Headroom:** Every campaign asserts via `/sys/devices/system/cpu/*/topology/` that CPUs `0–15` are 16 distinct physical cores (no SMT sibling sharing). Part 1 & 3 pin clients to `0–7` and servers to `15` / `12–15` / `8–15`; Part 2 allocates **12 client cores (`0–11`)** for `1 / 2 / 4` server cores and `8` client cores (`0–7`) for `8` server cores. Server execution order rotates across rounds.
-4. **Zero-Error Wire-Level Validation:** Before every `h2load` run, a pre-flight `curl` HTTP/2 call verifies `HTTP/2 200`, trailer `grpc-status: 0`, and exact Protobuf response byte length (with CA verification on `localhost` for TLS); every `h2load` run enforces `0 failed / 0 errored / 0 timeout` and full aggregate byte counts. Built-in native and streaming clients validate every response length, message count, aggregate byte count, and terminal `OK` status.
+4. **Two levels of unary validation:** `curl` checks one response before timing. `h2load` reports HTTP status and stream completion during timing. Current runners then replay the workload with `bin/bench-client`, matching CPU placement, connections, streams per connection, payload sizes, TLS mode, warmup and duration. The Go client requires one unary message of the requested payload length and final gRPC `OK` on every call. Its achieved rate can differ from `h2load`'s. Only the replay's own calls are verified.
 5. **Unbiased Timing & Zero-Allocation Histograms:** All built-in clients (`go/client`, `rust-tonic`, `native-cpp/load.h`) connect eagerly, synchronize workers on a post-warmup monotonic barrier, compute unbiased per-worker active-time throughput `sum(completed_i / active_seconds_i)`, and record latencies in fixed-memory O(1) log-linear histograms (`<0.4%` error, exact `<512 ns`) to avoid post-run sort pauses.
 6. **Transparent Variance & Full Provenance:** Every formal configuration runs **3 × 5 s** rounds after warmup (preceded by a full 260-case `--smoke` gate). All tables report medians and every Benchkit chart renders full observed min–max bounds (median three-round spread: **`1.15%`** Part 1, **`1.62%`** Part 2, **`0.75%`** Part 3). Binary SHA-256 manifests, `lscpu`, compiler versions, and CPU governors are archived alongside each run.
 
@@ -148,6 +147,8 @@ python3 harness/tests/tls-validation-test.py
 ### 2. Run the 3 Benchmark Matrices
 
 Output directories must not already exist. Add `--smoke` to any campaign script for a fast end-to-end validation pass before formal measurement.
+
+Both unary runners require a freshly built `bin/bench-client`. A failed replay aborts the run. Part 1 stores replay counts in each run's `validation.json`; Part 2 stores them in `logs/*.validation.json`, referenced by `validation_file` in `results.jsonl`. Replay counts and timings do not enter the throughput tables.
 
 ```sh
 export GRPC_LITE_SERVER=/absolute/path/to/grpc-lite-interop-server

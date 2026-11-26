@@ -18,6 +18,7 @@ Before every run, a pre-flight `curl` HTTP/2 request verifies HTTP 200,
 trailer `grpc-status: 0`, and exact Protobuf response length (with CA
 verification on `localhost` for TLS). Every `h2load` run requires zero
 failed/errored/timeout requests and zero non-2xx status codes.
+A separate gRPC client checks each response in a matching workload after timing.
 """
 
 from __future__ import annotations
@@ -36,6 +37,11 @@ import statistics
 import struct
 import subprocess
 import time
+
+if __package__:
+    from . import unary_validation
+else:
+    import unary_validation
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -486,6 +492,7 @@ def run_single_h2load(
         raise RuntimeError(f"h2load validation failed: {parsed}\n{stdout}")
 
     bytes_per_req = parsed["total_bytes"] / parsed["succeeded"]
+    # A gross traffic deficit can reject a run; passing cannot establish RPC success.
     min_expected_total = max(0, parsed["succeeded"] - max_inflight) * expected_body_len
     if parsed["total_bytes"] < min_expected_total:
         raise RuntimeError(
@@ -618,6 +625,7 @@ def main() -> None:
         },
         "binaries": {
             str(h2load_bin): sha256_file(h2load_bin),
+            str(unary_validation.CLIENT): sha256_file(unary_validation.CLIENT),
             str(grpc_lite_bin): sha256_file(grpc_lite_bin),
             str(ROOT / "bin/tonic-server"): sha256_file(ROOT / "bin/tonic-server"),
             str(ROOT / "bin/go-server"): sha256_file(ROOT / "bin/go-server"),
@@ -669,6 +677,21 @@ def main() -> None:
                             server_pid=proc.pid,
                             expected_body_len=exp_body_len,
                         )
+                        validation_path = log_path.with_suffix(".validation.json")
+                        unary_validation.validate_unary(
+                            port=port,
+                            tls=tls,
+                            client_cpus=client_cpus,
+                            threads=threads,
+                            connections=conns,
+                            streams=streams,
+                            request_bytes=req_b,
+                            response_bytes=resp_b,
+                            warmup_ms=warmup_ms,
+                            duration_ms=duration_ms,
+                            env=clean_env(),
+                            output=validation_path,
+                        )
                     finally:
                         stop_server(proc)
                     payload_mib_s = res["ops_per_second"] * (req_b + resp_b) / 1_048_576.0
@@ -687,6 +710,8 @@ def main() -> None:
                         "request_bytes": req_b,
                         "response_bytes": resp_b,
                         "payload_mib_s": round(payload_mib_s, 2),
+                        "completion_scope": "http2",
+                        "validation_file": str(validation_path.relative_to(out)),
                         **res,
                     }
                     records.append(rec)
@@ -796,8 +821,10 @@ def main() -> None:
                         f"{statistics.median(x['client_core_cpu_percent'] for x in grp):.1f}\n"
                     )
 
-    total_rpcs = sum(r["succeeded"] for r in records)
-    print(f"\nCompleted {len(records)} runs, {total_rpcs:,} total succeeded RPCs, 0 errors -> {out}")
+    completions = sum(r["succeeded"] for r in records)
+    print(
+        f"\nCompleted {len(records)} runs, {completions:,} timed HTTP/2 completions -> {out}"
+    )
 
 
 if __name__ == "__main__":

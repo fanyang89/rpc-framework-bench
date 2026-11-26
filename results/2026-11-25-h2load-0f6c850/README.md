@@ -1,6 +1,6 @@
 # Full Neutral `h2load` RPC Comparison: `grpc-lite 0f6c850`
 
-All **260 smoke runs** and **780 formal runs** passed with **524,313,126 succeeded RPCs** and **zero errors** across three independent matrices on the post-fix benchmark suite, using off-the-shelf **`h2load` (`nghttp2/1.69.0`)** as the neutral third-party load generator for all gRPC Unary benchmarks.
+All **260 smoke runs** and **780 formal runs** passed their original checks. The formal runs recorded **524,313,126 client-reported completions** across three matrices. For `h2load` rows, `succeeded`/`completed` count HTTP/2 completions and RPC/s denotes completions per second. Only the preflight checked gRPC status and response length. `total_bytes` includes headers and framing; `data_bytes` includes warmup and exceeds `total_bytes` in 210 of the 240 multiplexed runs. The archive cannot determine the per-RPC success rate of timed unary requests. Native and streaming counts retain their application-level checks.
 
 See [`report/README.md`](../../report/README.md) for the complete analysis and all 10 Benchkit PNG/PDF charts.
 
@@ -8,7 +8,7 @@ See [`report/README.md`](../../report/README.md) for the complete analysis and a
 
 All three matrices ran sequentially on `AMD Ryzen 9 9955HX` (16 physical cores / 32 threads, `performance` governor on CPUs `0–15`, Linux x86_64, localhost TCP). Every formal configuration ran **3 repetitions × 5 seconds** after warmup.
 
-| Matrix | Directory | Smoke Runs | Formal Runs | Completed RPCs | Client & Scope |
+| Matrix | Directory | Smoke Runs | Formal Runs | Client-reported completions | Client & Scope |
 | --- | --- | ---: | ---: | ---: | --- |
 | **Native + `h2load (-m 1)` Cross-Protocol** | `native-measured/` | 120 | 360 | 216,757,899 | 8 frameworks Plaintext: Thrift / Cap'n Proto / brpc on native C++ clients; all 5 gRPC servers on `h2load -m 1` (exact 1-conn/worker parity) |
 | **Multiplexed gRPC via `h2load`** | `h2load-measured/` | 80 | 240 | 286,684,053 | 5 gRPC servers, Plaintext (`h2c`) & TLS (`h2`), `1/2/4` cores (12c cli) + `8` cores (8c cli) 1 KiB (`-m 16`), plus 1-core `64 KiB`, `1 MiB`, and asymmetric `64 B ↔ 64 KiB` |

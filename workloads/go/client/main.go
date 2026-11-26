@@ -186,6 +186,10 @@ func operation(client pb.TestServiceClient, cfg config, request *pb.SimpleReques
 			if err != nil {
 				return err
 			}
+			// Empty SimpleResponse and an explicitly empty Payload both encode a 0 B body.
+			if cfg.ResponseSize == 0 && response.GetPayload() == nil {
+				return nil
+			}
 			return validateResponse(response, cfg.ResponseSize)
 		case "client-stream":
 			stream, err := client.StreamingInputCall(ctx)
@@ -352,6 +356,9 @@ func run() error {
 			Type: pb.PayloadType_COMPRESSABLE,
 			Body: make([]byte, cfg.RequestSize),
 		},
+	}
+	if cfg.Mode == "unary" && cfg.RequestSize == 0 {
+		request.Payload = nil // Match the empty unary request sent by h2load.
 	}
 
 	warmupGate := make(chan struct{})

@@ -21,6 +21,12 @@ type peer struct {
 
 func (p peer) UnaryCall(_ context.Context, r *pb.SimpleRequest) (*pb.SimpleResponse, error) {
 	size := r.ResponseSize
+	if p.fault == "status" {
+		return nil, status.Error(codes.Internal, "unary failed")
+	}
+	if size == 0 {
+		return &pb.SimpleResponse{}, nil
+	}
 	if p.fault == "short" {
 		size--
 	}
@@ -91,6 +97,9 @@ func (p peer) FullDuplexCall(s pb.TestService_FullDuplexCallServer) error {
 func TestOperationValidatesWholeRPC(t *testing.T) {
 	for _, mode := range []string{"unary", "client-stream", "server-stream", "bidi"} {
 		faults := []string{"", "short"}
+		if mode == "unary" {
+			faults = append(faults, "status", "empty")
+		}
 		if mode == "server-stream" || mode == "bidi" {
 			faults = append(faults, "extra", "status")
 		}
@@ -110,9 +119,12 @@ func TestOperationValidatesWholeRPC(t *testing.T) {
 				}
 				defer conn.Close()
 				cfg := config{Mode: mode, Messages: 3, RequestSize: 8, ResponseSize: 8}
-				request := &pb.SimpleRequest{ResponseSize: 8, Payload: &pb.Payload{Body: make([]byte, 8)}}
+				if fault == "empty" {
+					cfg.ResponseSize = 0
+				}
+				request := &pb.SimpleRequest{ResponseSize: int32(cfg.ResponseSize), Payload: &pb.Payload{Body: make([]byte, 8)}}
 				err = operation(pb.NewTestServiceClient(conn), cfg, request)()
-				if (err != nil) != (fault != "") {
+				if (err != nil) != (fault != "" && fault != "empty") {
 					t.Fatalf("fault %q: got %v", fault, err)
 				}
 			})
