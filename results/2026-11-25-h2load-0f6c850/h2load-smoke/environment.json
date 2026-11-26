@@ -100,7 +100,7 @@
   },
   "binaries": {
     "/usr/bin/h2load": "3a15a40eb3b85af3e408163df6bfaafd91942bac3d974d645f6b4bebff514ae8",
-    "/tmp/opencode/grpc-lite-0f6c850/zig-out/bin/grpc-lite-interop-server": "76886c831fb5359b13b902be0cd936edc1a11689ed3cc65573e79c79e071d8cd",
+    "<TMPDIR>/grpc-lite-0f6c850/zig-out/bin/grpc-lite-interop-server": "76886c831fb5359b13b902be0cd936edc1a11689ed3cc65573e79c79e071d8cd",
     "/home/fanmi/workspace/rpc-framework-bench/bin/tonic-server": "7c533441af3fbfe02a83813cb6c62c7cab819b018bbc561fae2c516d1275393b",
     "/home/fanmi/workspace/rpc-framework-bench/bin/go-server": "dd986219425412ae97cf3d446a3d66a06bce351b09baa6a163c9f691ec9bad9c",
     "/home/fanmi/workspace/rpc-framework-bench/bin/cpp-server": "b79567732dee46516c2153430f409ebb55f88bb212fb8ad90f958e73248b2354"

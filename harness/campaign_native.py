@@ -580,7 +580,7 @@ def main():
         enable_data_dir=True,
         benchmark_duration_seconds=1 if args.smoke else 5,
         results_dir=output,
-        tmp_dir=Path(os.environ.get("TMPDIR", "/tmp/opencode")),
+        tmp_dir=Path(os.environ.get("TMPDIR") or "/tmp"),
     )
     campaign.run()
     if not args.no_graphs:

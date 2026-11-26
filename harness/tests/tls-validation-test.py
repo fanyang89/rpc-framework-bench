@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Both load generators must reject an untrusted CA and the wrong hostname."""
 
-import os
 from pathlib import Path
 import socket
 import subprocess
@@ -16,9 +15,7 @@ def openssl(*args):
     subprocess.run(["openssl", *map(str, args)], check=True, capture_output=True)
 
 
-with tempfile.TemporaryDirectory(
-    dir=os.environ.get("TMPDIR", "/tmp/opencode")
-) as directory:
+with tempfile.TemporaryDirectory() as directory:
     temp = Path(directory)
     openssl(
         "req",

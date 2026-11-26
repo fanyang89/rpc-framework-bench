@@ -291,7 +291,7 @@ Because `h2load` is an HTTP/2 Unary tool and cannot perform multi-frame gRPC str
 All 10 figures (PNG + vector PDF) in [`report/figures/`](figures/) are deterministically generated from the raw campaign data using Benchkit's `lwchart` engine:
 
 ```sh
-/tmp/opencode/rpc-benchkit-venv/bin/python harness/plot_report.py \
+"${TMPDIR:-/tmp}"/rpc-benchkit-venv/bin/python harness/plot_report.py \
   --dataset results/2026-11-25-h2load-0f6c850 \
   --output report/figures
 ```

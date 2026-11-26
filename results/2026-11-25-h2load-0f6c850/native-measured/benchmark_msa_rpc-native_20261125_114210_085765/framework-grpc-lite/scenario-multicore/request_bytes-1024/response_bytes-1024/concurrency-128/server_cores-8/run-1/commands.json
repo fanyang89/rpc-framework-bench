@@ -3,7 +3,7 @@
     "taskset",
     "-c",
     "8,9,10,11,12,13,14,15",
-    "/tmp/opencode/grpc-lite-0f6c850/zig-out/bin/grpc-lite-interop-server",
+    "<TMPDIR>/grpc-lite-0f6c850/zig-out/bin/grpc-lite-interop-server",
     "--port=26300",
     "--use_tls=false",
     "--reactors=8"

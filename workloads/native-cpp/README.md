@@ -30,20 +30,20 @@ From the repository root:
 
 ```sh
 cmake -S workloads/native-cpp -B bin/native-build -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/tmp/opencode/rpc-native
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="${TMPDIR:-/tmp}"/rpc-native
 cmake --build bin/native-build --parallel 8
 cmake -S workloads/native-cpp -B bin/grpc-native-build -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DGRPC_ONLY=ON \
-  -DCMAKE_PREFIX_PATH=/tmp/opencode/grpc-1.84.3-install
+  -DCMAKE_PREFIX_PATH="${TMPDIR:-/tmp}"/grpc-1.84.3-install
 cmake --build bin/grpc-native-build --parallel 4
-c++ -std=c++17 -pthread workloads/native-cpp/load_test.cc -o /tmp/opencode/rpc-load-test
-/tmp/opencode/rpc-load-test
+c++ -std=c++17 -pthread workloads/native-cpp/load_test.cc -o "${TMPDIR:-/tmp}"/rpc-load-test
+"${TMPDIR:-/tmp}"/rpc-load-test
 
 export GRPC_LITE_SERVER=/absolute/path/to/grpc-lite-interop-server
 export MPLBACKEND=Agg
-/tmp/opencode/rpc-benchkit-venv/bin/python harness/campaign_native.py \
+"${TMPDIR:-/tmp}"/rpc-benchkit-venv/bin/python harness/campaign_native.py \
   --smoke --output results/sweeps/benchkit-smoke
-/tmp/opencode/rpc-benchkit-venv/bin/python harness/campaign_native.py \
+"${TMPDIR:-/tmp}"/rpc-benchkit-venv/bin/python harness/campaign_native.py \
   --output results/benchkit-native
 ```
 

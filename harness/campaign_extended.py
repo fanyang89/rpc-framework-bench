@@ -75,7 +75,6 @@ def main():
     output = args.output.resolve()
     env = dict(
         os.environ,
-        TMPDIR=os.environ.get("TMPDIR", "/tmp/opencode"),
         TLS_CERT=str(ROOT / "bin/certs/server.pem"),
         TLS_KEY=str(ROOT / "bin/certs/server.key"),
         TLS_CA=str(ROOT / "bin/certs/ca.pem"),
@@ -91,6 +90,8 @@ def main():
         CONNECTIONS="16",
         MESSAGES="16",
     )
+    if env.get("TMPDIR"):
+        Path(env["TMPDIR"]).mkdir(parents=True, exist_ok=True)
     binaries = [
         server,
         *(
