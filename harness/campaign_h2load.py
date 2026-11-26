@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -379,6 +380,16 @@ def preflight_curl(port: int, tls: bool, req_file: Path, expected_body_len: int,
         raise RuntimeError(f"preflight body length {body_len} != expected {expected_body_len}")
 
 
+def seconds_to_ms(value: str) -> int:
+    seconds = float(value)
+    milliseconds = seconds * 1000
+    if not math.isfinite(milliseconds) or seconds < 0:
+        raise argparse.ArgumentTypeError(
+            "expected a finite, nonnegative number of seconds"
+        )
+    return round(milliseconds)
+
+
 def run_single_h2load(
     h2load_bin: Path,
     port: int,
@@ -388,15 +399,13 @@ def run_single_h2load(
     threads: int,
     conns: int,
     streams: int,
-    warmup_s: float,
-    duration_s: float,
+    warmup_ms: int,
+    duration_ms: int,
     req_file: Path,
     server_pid: int,
     expected_body_len: int,
 ) -> dict:
     env = clean_env()
-    warmup_arg = f"{int(round(warmup_s * 1000))}ms" if warmup_s < 1 else f"{int(warmup_s)}s"
-    dur_arg = f"{int(duration_s)}s"
     cmd = [
         "taskset",
         "-c",
@@ -408,9 +417,9 @@ def run_single_h2load(
         str(conns),
         "-m",
         str(streams),
-        f"--warm-up-time={warmup_arg}",
+        f"--warm-up-time={warmup_ms}ms",
         "-D",
-        dur_arg,
+        f"{duration_ms}ms",
         "-H",
         "content-type: application/grpc",
         "-H",
@@ -440,8 +449,9 @@ def run_single_h2load(
 
     proc = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    sample_start_delay = warmup_s + min(0.5, duration_s * 0.25)
-    sample_window = max(0.4, duration_s - 1.0) if duration_s >= 2.0 else max(0.3, duration_s * 0.5)
+    duration_s = duration_ms / 1000
+    sample_start_delay = warmup_ms / 1000 + min(0.5, duration_s * 0.25)
+    sample_window = duration_s - 1.0 if duration_s >= 2.0 else duration_s * 0.5
     time.sleep(sample_start_delay)
 
     t0 = time.monotonic()
@@ -525,9 +535,27 @@ def main() -> None:
     )
     parser.add_argument("--smoke", action="store_true", help="Fast 1-round x 1s validation pass")
     parser.add_argument("--rounds", type=int, default=3, help="Formal rounds per case (default: 3)")
-    parser.add_argument("--duration", type=float, default=5.0, help="Measurement duration in seconds")
-    parser.add_argument("--warmup", type=float, default=2.0, help="Warmup duration in seconds")
+    parser.add_argument(
+        "--duration",
+        dest="duration_ms",
+        metavar="SECONDS",
+        type=seconds_to_ms,
+        default="5",
+        help="Measurement duration in seconds (rounded to milliseconds)",
+    )
+    parser.add_argument(
+        "--warmup",
+        dest="warmup_ms",
+        metavar="SECONDS",
+        type=seconds_to_ms,
+        default="2",
+        help="Warmup duration in seconds (rounded to milliseconds)",
+    )
     args = parser.parse_args()
+    duration_ms = 1000 if args.smoke else args.duration_ms
+    warmup_ms = 500 if args.smoke else args.warmup_ms
+    if duration_ms == 0:
+        parser.error("--duration must round to at least 1 ms")
 
     grpc_lite_env = os.environ.get("GRPC_LITE_SERVER")
     if not grpc_lite_env:
@@ -548,8 +576,6 @@ def main() -> None:
     req_dir.mkdir()
 
     rounds = 1 if args.smoke else args.rounds
-    duration = 1.0 if args.smoke else args.duration
-    warmup = 0.5 if args.smoke else args.warmup
 
     req_files: dict[tuple[int, int], Path] = {}
     for _, _, _, _, _, _, _, req_b, resp_b in WORKLOADS:
@@ -569,8 +595,8 @@ def main() -> None:
     env_meta = {
         "smoke": args.smoke,
         "rounds": rounds,
-        "warmup_seconds": warmup,
-        "duration_seconds": duration,
+        "warmup_seconds": warmup_ms / 1000,
+        "duration_seconds": duration_ms / 1000,
         "h2load_version": h2load_ver,
         "workloads": [
             {
@@ -637,8 +663,8 @@ def main() -> None:
                             threads=threads,
                             conns=conns,
                             streams=streams,
-                            warmup_s=warmup,
-                            duration_s=duration,
+                            warmup_ms=warmup_ms,
+                            duration_ms=duration_ms,
                             req_file=req_file,
                             server_pid=proc.pid,
                             expected_body_len=exp_body_len,
